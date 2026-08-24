@@ -3,6 +3,34 @@ import { PROTOTYPE_RISK_WEIGHTS } from '../config/riskWeights';
 import { DEFAULT_RED_FLAG_THRESHOLDS, DEFAULT_WAIT_THRESHOLDS, RedFlagThresholds, WaitThresholds } from '../config/prototypeThresholds';
 import { AGE_GROUP_CONFIGS } from '../config/ageGroupConfig';
 
+/**
+ * Deterministically checks for respiratory symptoms in the chief complaint.
+ * Prevents negated statements (e.g. "No shortness of breath") from triggering positive respiratory risk.
+ */
+export function hasRespiratoryComplaint(complaint: string): boolean {
+  if (!complaint) return false;
+  const normalized = complaint.toLowerCase();
+  
+  const respiratoryTerms = [
+    'shortness of breath',
+    'breathlessness',
+    'difficulty breathing',
+    'dyspnea',
+    'stridor',
+    'respiratory distress',
+    'wheezing',
+    'gasping'
+  ];
+  
+  const hasTerm = respiratoryTerms.some(term => normalized.includes(term));
+  if (!hasTerm) return false;
+  
+  const negationPattern = /\b(no|denies|without|negative\s+for)\s+(?:\w+\s+){0,3}(?:shortness\s+of\s+breath|breathlessness|difficulty\s+breathing|dyspnea|stridor|respiratory\s+distress|wheezing|gasping)\b/;
+  
+  return !negationPattern.test(normalized);
+}
+
+
 export interface EvaluatedPatientResult {
   updatedPatient: Patient;
   reassessmentAlertTriggered: boolean;
@@ -94,8 +122,14 @@ export function evaluatePatientTriage(
   if (vitals.systolicBp !== null && vitals.systolicBp < redFlagThresholds.systolicBpCriticalLow) {
     redFlagsTriggered.push(`Critical Hypotension (SBP ${vitals.systolicBp} mmHg < ${redFlagThresholds.systolicBpCriticalLow} mmHg)`);
   }
+  if (vitals.systolicBp !== null && vitals.systolicBp >= redFlagThresholds.systolicBpCriticalHigh) {
+    redFlagsTriggered.push(`Critical Hypertension (SBP ${vitals.systolicBp} mmHg >= ${redFlagThresholds.systolicBpCriticalHigh} mmHg)`);
+  }
   if (vitals.respiratoryRate !== null && vitals.respiratoryRate >= redFlagThresholds.respiratoryRateCriticalHigh) {
     redFlagsTriggered.push(`Severe Tachypnea (RR ${vitals.respiratoryRate} /min)`);
+  }
+  if (vitals.heartRate !== null && vitals.heartRate >= redFlagThresholds.heartRateCriticalHigh) {
+    redFlagsTriggered.push(`Critical Tachycardia (HR ${vitals.heartRate} bpm >= ${redFlagThresholds.heartRateCriticalHigh} bpm)`);
   }
   if (patient.observedCues.some(c => c.toLowerCase().includes('stridor') || c.toLowerCase().includes('respiratory distress') || c.toLowerCase().includes('cyanotic'))) {
     redFlagsTriggered.push('Severe Airway / Respiratory Distress Cues');
@@ -134,7 +168,7 @@ export function evaluatePatientTriage(
   if (vitals.respiratoryRate !== null && vitals.respiratoryRate >= 26) {
     baseScore += PROTOTYPE_RISK_WEIGHTS.respiratorySymptoms;
     riskFactors.push({ name: 'Tachypnea & Respiratory Distress', contribution: PROTOTYPE_RISK_WEIGHTS.respiratorySymptoms, description: `Elevated respiratory rate (${vitals.respiratoryRate}/min)` });
-  } else if (patient.chiefComplaint.toLowerCase().includes('shortness of breath') || patient.chiefComplaint.toLowerCase().includes('breathlessness') || patient.chiefComplaint.toLowerCase().includes('wheezing')) {
+  } else if (hasRespiratoryComplaint(patient.chiefComplaint)) {
     const contrib = Math.round(PROTOTYPE_RISK_WEIGHTS.respiratorySymptoms * 0.7);
     baseScore += contrib;
     riskFactors.push({ name: 'Respiratory Complaint', contribution: contrib, description: 'Acute dyspnea reported' });

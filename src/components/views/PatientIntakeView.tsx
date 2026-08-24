@@ -408,10 +408,20 @@ export const PatientIntakeView: React.FC<PatientIntakeViewProps> = ({ onAddPatie
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Known Allergies</label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-xs text-slate-400 block">Known Allergies</label>
+                  <button
+                    type="button"
+                    onClick={() => setAllergiesText('NKDA')}
+                    className="text-[10px] text-amber-400 hover:text-amber-300 font-mono focus:outline-none"
+                    title="Mark as No Known Drug Allergies"
+                  >
+                    + Set NKDA
+                  </button>
+                </div>
                 <input
                   type="text"
-                  placeholder="e.g. Penicillin, Peanuts..."
+                  placeholder="e.g. Penicillin, Peanuts (or type 'None' / 'NKDA')"
                   value={allergiesText}
                   onChange={(e) => setAllergiesText(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none"
