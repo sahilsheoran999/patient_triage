@@ -44,7 +44,9 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = ({
   const highCount = patients.filter(p => p.priority === 'HIGH').length + (surgeState.isActive ? 18 : 0);
   const medCount = patients.filter(p => p.priority === 'MEDIUM').length + (surgeState.isActive ? 45 : 0);
   const lowCount = patients.filter(p => p.priority === 'LOW' || p.priority === 'NON_URGENT').length + (surgeState.isActive ? 120 : 0);
-  const reassessCount = patients.filter(p => p.monitoringState === 'REASSESS' || p.monitoringState === 'ESCALATE').length + (surgeState.isActive ? 13 : 0);
+  const escalateCount = patients.filter(p => p.monitoringState === 'ESCALATE').length + (surgeState.isActive ? 6 : 0);
+  const reassessOnlyCount = patients.filter(p => p.monitoringState === 'REASSESS').length + (surgeState.isActive ? 7 : 0);
+  const reassessCount = escalateCount + reassessOnlyCount;
   const watchCount = patients.filter(p => p.monitoringState === 'WATCH').length;
   const avgWaitMinutes = Math.round(patients.reduce((acc, p) => acc + p.elapsedWaitMinutes, 0) / (patients.length || 1));
 
@@ -147,8 +149,11 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = ({
             <AlertTriangle className="w-4 h-4 text-amber-400 animate-bounce" />
           </div>
           <p className="text-2xl font-bold font-mono text-amber-300 mt-1">{reassessCount}</p>
-          <span className="text-[10px] text-amber-400/90 font-mono">
-            {watchCount} in passive watch
+          <span className="text-[10px] text-amber-400/90 font-mono block truncate">
+            {escalateCount} Escalate • {reassessOnlyCount} Reassess
+          </span>
+          <span className="text-[9px] text-slate-500 font-mono block">
+            ({watchCount} in passive watch)
           </span>
         </div>
 

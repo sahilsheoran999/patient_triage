@@ -409,16 +409,18 @@ export const App: React.FC = () => {
         />
 
         {/* Primary Content View Area */}
-        <main className="flex-1 overflow-y-auto bg-slate-950 space-y-4">
+        <main className="flex-1 overflow-y-auto bg-slate-950">
           
           {/* Surge Intelligence Panel when Surge Mode Active */}
-          <div className="p-4 sm:p-6 pb-0">
-            <SurgeIntelligencePanel
-              surgeState={surgeState}
-              patients={patients}
-              onSelectPatient={(pt) => setSelectedDetailPatient(pt)}
-            />
-          </div>
+          {surgeState.isActive && (
+            <div className="p-4 sm:p-6 pb-0">
+              <SurgeIntelligencePanel
+                surgeState={surgeState}
+                patients={patients}
+                onSelectPatient={(pt) => setSelectedDetailPatient(pt)}
+              />
+            </div>
+          )}
 
           {/* View Tab Switcher */}
           {activeTab === 'command_center' && (
