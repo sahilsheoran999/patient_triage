@@ -93,6 +93,27 @@ export const SafetyPolicyView: React.FC = () => {
           </span>
         </div>
 
+        {/* Authority Legend */}
+        <div className="flex flex-wrap items-center gap-4 p-2.5 bg-slate-950 rounded-lg border border-slate-800 text-[11px] font-mono">
+          <span className="text-slate-400 uppercase text-[10px] font-bold">Authority Legend:</span>
+          <span className="flex items-center gap-1.5 text-emerald-400">
+            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <strong>Clinician (Final Authority)</strong>
+          </span>
+          <span className="flex items-center gap-1.5 text-rose-400">
+            <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+            <strong>Deterministic Rules (Safety Authority)</strong>
+          </span>
+          <span className="flex items-center gap-1.5 text-indigo-300">
+            <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
+            <strong>XGBoost (Advisory Model)</strong>
+          </span>
+          <span className="flex items-center gap-1.5 text-amber-300">
+            <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+            <strong>UNKNOWN ≠ NORMAL</strong>
+          </span>
+        </div>
+
         {/* 10-Stage Pipeline Flow */}
         <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-4">
           

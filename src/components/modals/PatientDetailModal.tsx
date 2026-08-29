@@ -123,27 +123,44 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
         <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
           
           {/* Section 1 & 2: Current Status & Monitoring Banner */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono">
-            <div>
-              <span className="text-[10px] text-slate-500 uppercase block">Risk Score</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono">
+            <div className="bg-slate-900/60 p-2.5 rounded border border-slate-800">
+              <span className="text-[10px] text-slate-500 uppercase block font-mono">Risk Score</span>
               <span className="text-2xl font-bold text-rose-400">{patient.riskScore}<span className="text-xs text-slate-500">/100</span></span>
+              <span className="text-[9px] text-slate-500 block mt-0.5">Rule Authority</span>
             </div>
 
-            <div>
-              <span className="text-[10px] text-slate-500 uppercase block">Confidence</span>
-              <span className="text-2xl font-bold text-slate-200">{patient.confidence}%</span>
+            <div className="bg-slate-900/60 p-2.5 rounded border border-slate-800">
+              <span className="text-[10px] text-slate-500 uppercase block font-mono">Model Probability</span>
+              <span className="text-2xl font-bold text-indigo-300">
+                {patient.mlPrediction ? `${(patient.mlPrediction.topProbability * 100).toFixed(1)}%` : 'N/A'}
+              </span>
+              <span className="text-[9px] text-indigo-400/80 block mt-0.5">XGBoost Advisory</span>
             </div>
 
-            <div>
-              <span className="text-[10px] text-slate-500 uppercase block">Uncertainty</span>
-              <span className={`text-xl font-bold ${patient.uncertainty === 'HIGH' ? 'text-rose-400' : 'text-amber-400'}`}>
+            <div className="bg-slate-900/60 p-2.5 rounded border border-slate-800">
+              <span className="text-[10px] text-slate-500 uppercase block font-mono">Model Uncertainty</span>
+              <span className={`text-2xl font-bold ${
+                patient.uncertainty === 'HIGH' ? 'text-rose-400' : 
+                patient.uncertainty === 'MODERATE' ? 'text-amber-400' : 'text-emerald-400'
+              }`}>
                 {patient.uncertainty}
+              </span>
+              <span className="text-[9px] text-slate-500 block mt-0.5">
+                {patient.uncertainty === 'HIGH' ? 'Safety Penalty' : 'Nominal'}
               </span>
             </div>
 
-            <div>
-              <span className="text-[10px] text-slate-500 uppercase block">Monitoring State</span>
-              <span className="text-xl font-bold text-amber-300">{patient.monitoringState}</span>
+            <div className="bg-slate-900/60 p-2.5 rounded border border-slate-800">
+              <span className="text-[10px] text-slate-500 uppercase block font-mono">Monitoring State</span>
+              <span className={`text-2xl font-bold ${
+                patient.monitoringState === 'ESCALATE' ? 'text-rose-400' :
+                patient.monitoringState === 'REASSESS' ? 'text-amber-300' :
+                patient.monitoringState === 'WATCH' ? 'text-cyan-300' : 'text-slate-300'
+              }`}>
+                {patient.monitoringState}
+              </span>
+              <span className="text-[9px] text-slate-500 block mt-0.5">Queue Status</span>
             </div>
           </div>
 
@@ -505,7 +522,7 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div className="bg-slate-900 p-2.5 rounded border border-slate-800">
-                <span className="text-slate-500 uppercase text-[10px] block">Confidence Score</span>
+                <span className="text-slate-500 uppercase text-[10px] block">Data Quality Index</span>
                 <span className="text-lg font-bold text-white">{patient.confidence}%</span>
               </div>
 

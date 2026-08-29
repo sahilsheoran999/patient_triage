@@ -151,15 +151,25 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
           </div>
         </div>
 
-        {/* AI Decision Boundary Banner */}
-        <div className="bg-slate-950 border-b border-slate-800 p-3 text-xs text-slate-300 flex items-center gap-3 font-mono">
-          <ShieldAlert className="w-4 h-4 text-emerald-400 shrink-0" />
-          <div>
-            <strong className="text-emerald-400 uppercase">AI DECISION BOUNDARY:</strong>
-            <span className="text-slate-300 ml-1">
-              XGBoost provides advisory acuity probabilities. Deterministic safety rules enforce safety floors, and clinicians retain final decision authority.
-            </span>
-          </div>
+        {/* Authority Legend */}
+        <div className="bg-slate-950/80 border-b border-slate-800 px-4 py-2 flex flex-wrap items-center gap-4 text-[11px] font-mono">
+          <span className="text-slate-400 uppercase text-[10px] font-bold">Legend:</span>
+          <span className="flex items-center gap-1.5 text-emerald-400">
+            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <strong>Clinician (Final Authority)</strong>
+          </span>
+          <span className="flex items-center gap-1.5 text-rose-400">
+            <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+            <strong>Deterministic Rules (Safety Authority)</strong>
+          </span>
+          <span className="flex items-center gap-1.5 text-indigo-300">
+            <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
+            <strong>XGBoost (Advisory Model)</strong>
+          </span>
+          <span className="flex items-center gap-1.5 text-amber-300">
+            <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+            <strong>UNKNOWN ≠ NORMAL</strong>
+          </span>
         </div>
 
         {/* Animated 11-Step Flow Diagram */}

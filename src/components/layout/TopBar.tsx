@@ -92,11 +92,19 @@ export const TopBar: React.FC<TopBarProps> = ({
             <div className="relative group">
               <span className="bg-indigo-950/60 border border-indigo-500/40 text-indigo-300 text-[10px] font-bold px-2.5 py-1 rounded flex items-center gap-1.5 cursor-help">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
-                AI DECISION SUPPORT: ACTIVE
+                AI DECISION SUPPORT: XGBoost Advisory • Safety Rules Authority
               </span>
-              <div className="absolute top-full left-0 mt-1.5 w-72 bg-slate-900 border border-indigo-500/40 p-2.5 rounded shadow-2xl text-[11px] text-slate-300 z-50 hidden group-hover:block leading-relaxed">
-                <p className="font-bold text-indigo-300 mb-0.5">XGBoost Advisory Layer</p>
-                XGBoost advisory model. Deterministic safety rules remain the safety authority.
+              <div className="absolute top-full left-0 mt-1.5 w-80 bg-slate-900 border border-indigo-500/40 p-3 rounded-lg shadow-2xl text-[11px] text-slate-300 z-50 hidden group-hover:block leading-relaxed">
+                <p className="font-bold text-indigo-300 mb-1">Hybrid Decision Support</p>
+                <p className="text-slate-300 mb-2">
+                  XGBoost provides multi-class advisory predictions. Deterministic safety rules enforce hard safety floors, and clinicians retain final decision authority.
+                </p>
+                <div className="pt-2 border-t border-slate-800 flex flex-col gap-1 text-[10px] font-mono">
+                  <span className="text-emerald-400 font-semibold">🟢 Clinician (Final Authority)</span>
+                  <span className="text-rose-400 font-semibold">🔴 Deterministic Rules (Safety Authority)</span>
+                  <span className="text-indigo-300 font-semibold">🟡 XGBoost (Advisory Predictive)</span>
+                  <span className="text-amber-300 font-semibold">🔵 Data Quality (UNKNOWN ≠ NORMAL)</span>
+                </div>
               </div>
             </div>
           </div>
