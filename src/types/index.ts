@@ -18,6 +18,14 @@ export interface TriageLevelInfo {
 
 export type MonitoringState = 'SAFE' | 'WATCH' | 'REASSESS' | 'ESCALATE';
 
+export type MonitoringReasonCode = 
+  | 'SAFETY_RED_FLAG'
+  | 'MODEL_RULE_DISAGREEMENT'
+  | 'DETERIORATION'
+  | 'WAIT_TIME_EXCEEDED'
+  | 'HIGH_UNCERTAINTY'
+  | 'NONE';
+
 export interface VitalReading {
   timestamp: string; // ISO or relative
   minutesAgo: number;
@@ -49,6 +57,41 @@ export interface UncertaintyDriver {
   factor: string;
   impact: 'High' | 'Moderate' | 'Low';
   description: string;
+}
+
+export interface FeatureContribution {
+  featureName: string;
+  displayName: string;
+  value: string | number;
+  importance: number;
+  impactDirection: 'increases_acuity' | 'decreases_acuity' | 'neutral';
+}
+
+export interface MLPrediction {
+  predictedClass: TriageLevelCode;
+  probabilities: Record<TriageLevelCode, number>;
+  topProbability: number;
+  secondProbability: number;
+  probabilityMargin: number;
+  modelUncertainty: 'LOW' | 'MODERATE' | 'HIGH';
+  featureContributions: FeatureContribution[];
+  modelVersion: string;
+  inferenceTimestamp: string;
+}
+
+export interface HybridDecision {
+  finalPriority: TriageLevelCode;
+  rulePriority: TriageLevelCode;
+  mlPriority?: TriageLevelCode;
+  isSafetyFloorEnforced: boolean;
+  isDisagreement: boolean;
+  reason: string;
+  policyApplied: 
+    | 'DETERMINISTIC_SAFETY_FLOOR_CRITICAL'
+    | 'ML_UPGRADE_FOR_SAFETY'
+    | 'RULE_SAFETY_OVERRIDE'
+    | 'CONCORDANT'
+    | 'FALLBACK_DETERMINISTIC_ONLY';
 }
 
 export interface Patient {
@@ -92,11 +135,17 @@ export interface Patient {
   primaryReason: string;
   recommendedAction: string;
   safetyEscalatedDueToUncertainty: boolean;
+  whyNowTitle?: string;
   whyNowReason?: string;
+  monitoringReasonCode?: MonitoringReasonCode;
   recentDeteriorationDetected?: boolean;
   vitalDeltas?: VitalDelta[];
   riskFactors: RiskFactor[];
   uncertaintyDrivers: UncertaintyDriver[];
+  
+  // ML Decision Support & Hybrid Fusion
+  mlPrediction?: MLPrediction;
+  hybridDecision?: HybridDecision;
   
   // Clinician override state
   overrideApplied?: boolean;
@@ -123,6 +172,8 @@ export interface AuditLogEntry {
     | 'PATIENT_REGISTERED'
     | 'VITALS_RECORDED'
     | 'AI_ASSESSMENT_GENERATED'
+    | 'MODEL_RULE_DISAGREEMENT'
+    | 'SAFETY_FLOOR_OVERRIDE'
     | 'RISK_RECALCULATED'
     | 'REASSESSMENT_TRIGGERED'
     | 'DETERIORATION_DETECTED'

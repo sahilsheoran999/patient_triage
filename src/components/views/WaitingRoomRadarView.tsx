@@ -313,20 +313,29 @@ export const WaitingRoomRadarView: React.FC<WaitingRoomRadarViewProps> = ({
                     }`}>
                       NOW
                     </div>
-                    <span className="text-[10px] font-bold text-white mt-1">Current State</span>
+                    <span className="text-[10px] font-bold text-white mt-1">Final Hybrid</span>
                     <span className={`text-[10px] font-bold ${
                       patient.priority === 'CRITICAL' ? 'text-rose-400' : 'text-amber-400'
                     }`}>
                       {patient.priority}
                     </span>
+                    {patient.hybridDecision?.isSafetyFloorEnforced ? (
+                      <span className="text-[8px] font-mono text-rose-400 bg-rose-950/80 px-1 rounded mt-0.5 border border-rose-500/40">🛡 Safety Floor</span>
+                    ) : patient.hybridDecision?.isDisagreement ? (
+                      <span className="text-[8px] font-mono text-amber-400 bg-amber-950/80 px-1 rounded mt-0.5 border border-amber-500/40">⚠ ML/Rule</span>
+                    ) : patient.mlPrediction ? (
+                      <span className="text-[8px] font-mono text-emerald-400 bg-emerald-950/60 px-1 rounded mt-0.5 border border-emerald-500/30">✓ Concordant</span>
+                    ) : null}
                   </div>
                 </div>
               </div>
 
               {/* WHY NOW? Alert Banner if Reassessment or Escalation triggered */}
-              {(patient.monitoringState === 'REASSESS' || patient.monitoringState === 'ESCALATE' || patient.whyNowReason) && (
+              {(patient.monitoringState === 'REASSESS' || patient.monitoringState === 'ESCALATE' || patient.whyNowReason) && patient.whyNowReason && (
                 <WhyNowAlert
-                  reason={patient.whyNowReason || 'Safety threshold reached — clinician reassessment recommended.'}
+                  title={patient.whyNowTitle}
+                  reason={patient.whyNowReason}
+                  reasonCode={patient.monitoringReasonCode}
                   actionText="REASSESS PATIENT NOW"
                   onActionClick={() => onSelectPatient(patient)}
                 />

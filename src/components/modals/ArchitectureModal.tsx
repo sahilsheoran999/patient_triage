@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { X, GitMerge, ArrowDown, Play, CheckCircle2, ShieldAlert, Lock, Activity } from 'lucide-react';
+import { X, GitMerge, ArrowDown, Play, ShieldAlert } from 'lucide-react';
 
 interface ArchitectureModalProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+interface ArchitectureLayer {
+  step: string;
+  title: string;
+  badge?: string;
+  badgeColor?: string;
+  desc: string;
+  color: string;
 }
 
 export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, onClose }) => {
@@ -12,18 +21,95 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
 
-  const architectureLayers = [
-    { step: '01', title: 'PATIENT DATA', desc: 'Vitals, symptoms, age group, EHR history & observed cues', color: 'border-slate-700 bg-slate-900' },
-    { step: '02', title: 'DATA QUALITY LAYER', desc: 'Computes completeness % & enforces UNKNOWN ≠ NORMAL', color: 'border-amber-500/60 bg-amber-950/40' },
-    { step: '03', title: 'AGE-AWARE NORMALIZATION', desc: 'Pediatric (<18), Adult (18-64), Geriatric (65+) physiological baselines', color: 'border-indigo-500/60 bg-indigo-950/40' },
-    { step: '04', title: 'RED-FLAG SAFETY ENGINE', desc: 'Layer 1: Immediate escalation rules (Hypoxemia, Hypotension, Stridor)', color: 'border-rose-500 bg-rose-950/60' },
-    { step: '05', title: 'TRANSPARENT RISK SCORE', desc: 'Layer 2: Weighted score (0-100) with factor decomposition', color: 'border-orange-500/60 bg-orange-950/40' },
-    { step: '06', title: 'UNCERTAINTY ENGINE', desc: 'Layer 3: Evaluates data gaps ("When uncertain, do not downgrade")', color: 'border-amber-500/60 bg-amber-950/40' },
-    { step: '07', title: 'TRIAGE RECOMMENDATION', desc: '5-Level Severity Framework output + explicit confidence indicator', color: 'border-emerald-500/60 bg-emerald-950/40' },
-    { step: '08', title: 'CLINICIAN REVIEW', desc: 'Layer 4: Mandatory human control & clinician override capability', color: 'border-cyan-500/60 bg-cyan-950/40' },
-    { step: '09', title: 'WAITING-ROOM RADAR™', desc: 'Continuous safety monitoring for patients waiting in queue', color: 'border-rose-500 bg-rose-950/80' },
-    { step: '10', title: 'REASSESSMENT LOGIC', desc: 'Triggered when wait threshold exceeded or vitals deteriorate', color: 'border-orange-500/60 bg-orange-950/40' },
-    { step: '11', title: 'AUDIT + FEEDBACK STORE', desc: 'Immutable audit logs & clinician override feedback capture', color: 'border-purple-500/60 bg-purple-950/40' },
+  const architectureLayers: ArchitectureLayer[] = [
+    { 
+      step: '01', 
+      title: 'PATIENT DATA', 
+      badge: 'INPUT',
+      badgeColor: 'bg-slate-800 text-slate-300 border-slate-700',
+      desc: 'Vitals, symptoms, age group, history, allergies & observed clinical cues', 
+      color: 'border-slate-700 bg-slate-900' 
+    },
+    { 
+      step: '02', 
+      title: 'DATA QUALITY', 
+      badge: 'QUALITY',
+      badgeColor: 'bg-amber-950 text-amber-300 border-amber-500/40',
+      desc: 'Completeness checks, missing-input detection & UNKNOWN ≠ NORMAL', 
+      color: 'border-amber-500/60 bg-amber-950/40' 
+    },
+    { 
+      step: '03', 
+      title: 'AGE-AWARE NORMALIZATION', 
+      badge: 'PHYSIOLOGY',
+      badgeColor: 'bg-indigo-950 text-indigo-300 border-indigo-500/40',
+      desc: 'Pediatric (<18), adult (18–64) & geriatric (65+) physiological context', 
+      color: 'border-indigo-500/60 bg-indigo-950/40' 
+    },
+    { 
+      step: '04', 
+      title: 'DETERMINISTIC SAFETY ENGINE', 
+      badge: 'SAFETY AUTHORITY',
+      badgeColor: 'bg-rose-950 text-rose-300 border-rose-500/60 font-bold',
+      desc: 'Critical red-flag checks enforce immediate safety escalation (Hypoxemia, Hypotension, Temp, Stridor, Altered Mental Status)', 
+      color: 'border-rose-500 bg-rose-950/70' 
+    },
+    { 
+      step: '05', 
+      title: 'RULE-BASED RISK ASSESSMENT', 
+      badge: 'RULE ENGINE',
+      badgeColor: 'bg-amber-950 text-amber-300 border-amber-500/40',
+      desc: 'Illustrative weighted risk score (0–100) with transparent factor decomposition', 
+      color: 'border-amber-500/60 bg-amber-950/40' 
+    },
+    { 
+      step: '06', 
+      title: 'XGBOOST ADVISORY MODEL', 
+      badge: 'ADVISORY',
+      badgeColor: 'bg-indigo-950 text-indigo-300 border-indigo-500/60 font-bold',
+      desc: 'Multi-class acuity prediction using 71 engineered clinical features', 
+      color: 'border-indigo-500/70 bg-indigo-950/50' 
+    },
+    { 
+      step: '07', 
+      title: 'MODEL PROBABILITY & UNCERTAINTY', 
+      badge: 'PROBABILITIES',
+      badgeColor: 'bg-cyan-950 text-cyan-300 border-cyan-500/40',
+      desc: 'Class probabilities (CRITICAL to NON_URGENT), model uncertainty & feature-level SHAP explanations', 
+      color: 'border-cyan-500/60 bg-cyan-950/40' 
+    },
+    { 
+      step: '08', 
+      title: 'SAFETY FUSION / SAFETY FLOOR', 
+      badge: 'SAFETY GATE',
+      badgeColor: 'bg-rose-950 text-rose-200 border-rose-500 font-bold',
+      desc: 'Combines deterministic safety authority with advisory ML output — ML cannot override deterministic safety floors', 
+      color: 'border-rose-500 bg-rose-950/90 shadow-lg' 
+    },
+    { 
+      step: '09', 
+      title: 'FINAL RECOMMENDATION', 
+      badge: 'DECISION SUPPORT',
+      badgeColor: 'bg-amber-950 text-amber-300 border-amber-500/40',
+      desc: 'Final acuity recommendation with model/rule disagreement visibility (preserves review flags)', 
+      color: 'border-amber-500/60 bg-amber-950/40' 
+    },
+    { 
+      step: '10', 
+      title: 'CLINICIAN DECISION', 
+      badge: 'FINAL AUTHORITY',
+      badgeColor: 'bg-emerald-950 text-emerald-300 border-emerald-500 font-bold',
+      desc: 'Clinician retains final decision authority (accept, reassess, or override recommendation)', 
+      color: 'border-emerald-500 bg-emerald-950/80 shadow-lg' 
+    },
+    { 
+      step: '11', 
+      title: 'AUDIT & CONTINUOUS MONITORING', 
+      badge: 'AUDIT + RADAR',
+      badgeColor: 'bg-purple-950 text-purple-300 border-purple-500/40',
+      desc: 'Immutable audit events + Waiting-Room Radar™ continuous deterioration monitoring & wait-time reassessment', 
+      color: 'border-purple-500/60 bg-purple-950/40' 
+    },
   ];
 
   useEffect(() => {
@@ -46,7 +132,7 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
             <GitMerge className="w-6 h-6 text-rose-500" />
             <div>
               <h2 className="font-bold text-sm font-mono text-white">System Architecture Visualization</h2>
-              <p className="text-xs text-slate-400">Sequential 11-layer clinical data flow & LLM decision isolation boundary</p>
+              <p className="text-xs text-slate-400">Sequential 11-layer clinical data flow & hybrid ML safety boundary</p>
             </div>
           </div>
 
@@ -65,13 +151,13 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
           </div>
         </div>
 
-        {/* LLM Isolation Rule Callout */}
+        {/* AI Decision Boundary Banner */}
         <div className="bg-slate-950 border-b border-slate-800 p-3 text-xs text-slate-300 flex items-center gap-3 font-mono">
           <ShieldAlert className="w-4 h-4 text-emerald-400 shrink-0" />
           <div>
-            <strong className="text-emerald-400 uppercase">LLM DECISION ISOLATION BOUNDARY:</strong>
+            <strong className="text-emerald-400 uppercase">AI DECISION BOUNDARY:</strong>
             <span className="text-slate-300 ml-1">
-              LLMs (if integrated) are strictly restricted to symptom normalization & text summarization. All safety-critical triage decisions are 100% governed by deterministic rules & scoring.
+              XGBoost provides advisory acuity probabilities. Deterministic safety rules enforce safety floors, and clinicians retain final decision authority.
             </span>
           </div>
         </div>
@@ -94,13 +180,20 @@ export const ArchitectureModal: React.FC<ArchitectureModalProps> = ({ isOpen, on
                       {layer.step}
                     </span>
                     <div>
-                      <span className="font-bold text-xs text-white tracking-wider">{layer.title}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-white tracking-wider">{layer.title}</span>
+                        {layer.badge && (
+                          <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded border ${layer.badgeColor || 'bg-slate-800 text-slate-400 border-slate-700'}`}>
+                            {layer.badge}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[11px] text-slate-300 font-sans mt-0.5">{layer.desc}</p>
                     </div>
                   </div>
 
                   {isActive && (
-                    <span className="text-[10px] bg-rose-500 text-slate-950 font-bold px-2 py-0.5 rounded uppercase animate-pulse">
+                    <span className="text-[10px] bg-rose-500 text-slate-950 font-bold px-2 py-0.5 rounded uppercase animate-pulse shrink-0 ml-2">
                       Processing Layer
                     </span>
                   )}

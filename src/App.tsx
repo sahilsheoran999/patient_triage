@@ -339,6 +339,14 @@ export const App: React.FC = () => {
     } else if (scenarioId === 'I') {
       setSurgeState(prev => ({ ...prev, isActive: true }));
       setActiveTab('command_center');
+    } else if (scenarioId === 'J') {
+      const p = patients.find(x => x.id === 'P-127') || patients[0];
+      setSelectedDetailPatient(p);
+      setActiveTab('command_center');
+    } else if (scenarioId === 'K') {
+      const p = patients.find(x => x.id === 'P-146') || patients[0];
+      setSelectedDetailPatient(p);
+      setActiveTab('command_center');
     }
   };
 

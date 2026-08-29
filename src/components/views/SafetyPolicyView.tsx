@@ -84,45 +84,127 @@ export const SafetyPolicyView: React.FC = () => {
 
       {/* Safety Decision Flow Diagram */}
       <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl space-y-4 font-mono text-xs shadow-xl">
-        <span className="font-bold text-sm text-white uppercase tracking-wider block border-b border-slate-800 pb-2">
-          Safety Decision Flow Architecture
-        </span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-2 gap-2">
+          <span className="font-bold text-sm text-white uppercase tracking-wider block">
+            Hybrid Safety Decision Flow Architecture
+          </span>
+          <span className="text-[10px] text-amber-400 font-mono bg-amber-950/60 border border-amber-500/30 px-2 py-0.5 rounded">
+            Deterministic Safety Authority Constrains Advisory ML
+          </span>
+        </div>
 
-        <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-3 text-center">
-          <div className="bg-slate-900 border border-slate-800 p-2.5 rounded flex-1">
-            <span className="text-[10px] text-slate-500 block">INPUT</span>
-            <span className="font-bold text-white">Patient Data</span>
-          </div>
-          <ArrowRight className="w-4 h-4 text-slate-600 shrink-0" />
+        {/* 10-Stage Pipeline Flow */}
+        <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-4">
+          
+          {/* Row 1: Input to ML Advisory Model (Stages 1 - 5) */}
+          <div>
+            <div className="text-[10px] text-slate-500 font-mono uppercase mb-2 flex items-center gap-1.5">
+              <span>Phase 1: Deterministic Intake & ML Advisory Inference</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2 text-center">
+              {/* INPUT */}
+              <div className="bg-slate-900 border border-slate-800 p-2.5 rounded flex flex-col justify-center">
+                <span className="text-[9px] text-slate-500 block font-bold">INPUT</span>
+                <span className="font-bold text-white text-xs">Patient Data</span>
+                <span className="text-[9px] text-slate-400 mt-0.5 font-sans">Vitals, Complaint, Age</span>
+              </div>
 
-          <div className="bg-slate-900 border border-slate-800 p-2.5 rounded flex-1">
-            <span className="text-[10px] text-rose-400 block font-bold">LAYER 1</span>
-            <span className="font-bold text-slate-200">Red-Flag Check</span>
-          </div>
-          <ArrowRight className="w-4 h-4 text-slate-600 shrink-0" />
+              {/* LAYER 1 */}
+              <div className="bg-slate-900 border border-slate-800 p-2.5 rounded flex flex-col justify-center">
+                <span className="text-[9px] text-indigo-400 block font-bold">LAYER 1</span>
+                <span className="font-bold text-slate-200 text-xs">Data Quality</span>
+                <span className="text-[9px] text-indigo-300 mt-0.5 font-sans">UNKNOWN ≠ NORMAL</span>
+              </div>
 
-          <div className="bg-slate-900 border border-slate-800 p-2.5 rounded flex-1">
-            <span className="text-[10px] text-amber-400 block font-bold">LAYER 2</span>
-            <span className="font-bold text-slate-200">Risk Assessment</span>
-          </div>
-          <ArrowRight className="w-4 h-4 text-slate-600 shrink-0" />
+              {/* LAYER 2 */}
+              <div className="bg-rose-950/40 border border-rose-500/40 p-2.5 rounded flex flex-col justify-center">
+                <span className="text-[9px] text-rose-400 block font-bold">LAYER 2</span>
+                <span className="font-bold text-rose-200 text-xs">Deterministic Safety Check</span>
+                <span className="text-[9px] text-rose-300 mt-0.5 font-sans">Hard Red Flags</span>
+              </div>
 
-          <div className="bg-slate-900 border border-slate-800 p-2.5 rounded flex-1">
-            <span className="text-[10px] text-amber-400 block font-bold">LAYER 3</span>
-            <span className="font-bold text-amber-300">Uncertainty Eval</span>
-          </div>
-          <ArrowRight className="w-4 h-4 text-rose-500 shrink-0 animate-pulse" />
+              {/* LAYER 3 */}
+              <div className="bg-slate-900 border border-slate-800 p-2.5 rounded flex flex-col justify-center">
+                <span className="text-[9px] text-amber-400 block font-bold">LAYER 3</span>
+                <span className="font-bold text-slate-200 text-xs">Rule-Based Risk Assessment</span>
+                <span className="text-[9px] text-slate-400 mt-0.5 font-sans">Scored Risk 0–100</span>
+              </div>
 
-          <div className="bg-rose-950/80 border border-rose-500/60 p-2.5 rounded flex-1">
-            <span className="text-[10px] text-rose-300 block font-bold">SAFETY GATE</span>
-            <span className="font-bold text-white text-[11px]">Serious Risk Ruled Out?</span>
+              {/* LAYER 4 */}
+              <div className="bg-indigo-950/50 border border-indigo-500/40 p-2.5 rounded flex flex-col justify-center">
+                <span className="text-[9px] text-indigo-300 block font-bold">LAYER 4</span>
+                <span className="font-bold text-indigo-100 text-xs">XGBoost Advisory Model</span>
+                <span className="text-[9px] text-indigo-400 mt-0.5 font-sans">71 Domain Features</span>
+              </div>
+            </div>
           </div>
-          <ArrowRight className="w-4 h-4 text-slate-600 shrink-0" />
 
-          <div className="bg-emerald-950/80 border border-emerald-500/60 p-2.5 rounded flex-1">
-            <span className="text-[10px] text-emerald-400 block font-bold">FINAL CONTROL</span>
-            <span className="font-bold text-white">Clinician Decision</span>
+          {/* Flow Bridge Indicator */}
+          <div className="flex items-center justify-center gap-2 text-slate-600 font-mono text-[10px]">
+            <ArrowDown className="w-3.5 h-3.5 text-amber-400 animate-bounce" />
+            <span className="text-slate-400 font-sans">Deterministic Safety Constraints & Advisory Fusion</span>
+            <ArrowDown className="w-3.5 h-3.5 text-amber-400 animate-bounce" />
           </div>
+
+          {/* Row 2: Probabilities to Final Clinician Decision (Stages 6 - 10) */}
+          <div>
+            <div className="text-[10px] text-slate-500 font-mono uppercase mb-2 flex items-center gap-1.5">
+              <span>Phase 2: Hybrid Safety Fusion & Human Authority</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2 text-center">
+              {/* LAYER 5 */}
+              <div className="bg-slate-900 border border-slate-800 p-2.5 rounded flex flex-col justify-center">
+                <span className="text-[9px] text-indigo-400 block font-bold">LAYER 5</span>
+                <span className="font-bold text-slate-200 text-xs">Model Probabilities + Uncertainty</span>
+                <span className="text-[9px] text-slate-400 mt-0.5 font-sans">Model Distribution</span>
+              </div>
+
+              {/* SAFETY GATE */}
+              <div className="bg-rose-950/90 border-2 border-rose-500 p-2.5 rounded flex flex-col justify-center shadow-lg shadow-rose-950/50">
+                <span className="text-[9px] text-rose-300 block font-bold">SAFETY GATE</span>
+                <span className="font-bold text-white text-xs">Safety Fusion / Safety Floor</span>
+                <span className="text-[9px] text-rose-300 mt-0.5 font-bold font-sans">Deterministic Authority</span>
+              </div>
+
+              {/* FINAL */}
+              <div className="bg-slate-900 border border-slate-800 p-2.5 rounded flex flex-col justify-center">
+                <span className="text-[9px] text-amber-400 block font-bold">FINAL</span>
+                <span className="font-bold text-slate-200 text-xs">Final Recommendation</span>
+                <span className="text-[9px] text-slate-400 mt-0.5 font-sans">Decision Support</span>
+              </div>
+
+              {/* CONTROL */}
+              <div className="bg-emerald-950/90 border-2 border-emerald-500 p-2.5 rounded flex flex-col justify-center shadow-lg shadow-emerald-950/50">
+                <span className="text-[9px] text-emerald-400 block font-bold">CONTROL</span>
+                <span className="font-bold text-white text-xs">Clinician Decision</span>
+                <span className="text-[9px] text-emerald-300 mt-0.5 font-bold font-sans">Clinician Final Authority</span>
+              </div>
+
+              {/* AUDIT */}
+              <div className="bg-slate-900 border border-slate-800 p-2.5 rounded flex flex-col justify-center">
+                <span className="text-[9px] text-slate-500 block font-bold">AUDIT</span>
+                <span className="font-bold text-slate-200 text-xs">Audit Log</span>
+                <span className="text-[9px] text-slate-400 mt-0.5 font-sans">Immutable Store</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Architectural Notes Callout */}
+          <div className="pt-2 border-t border-slate-900 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] font-sans">
+            <div className="bg-slate-900/60 p-2 rounded border border-slate-800/80 text-slate-300">
+              <strong className="text-rose-400 block font-mono text-[10px] uppercase">Deterministic Safety Authority</strong>
+              Safety rules constrain ML recommendations. Deterministic red flags cannot be overridden by ML.
+            </div>
+            <div className="bg-slate-900/60 p-2 rounded border border-slate-800/80 text-slate-300">
+              <strong className="text-amber-400 block font-mono text-[10px] uppercase">Model Disagreement</strong>
+              Advisory model disagreement highlighted for clinician review without triggering false red flags.
+            </div>
+            <div className="bg-slate-900/60 p-2 rounded border border-slate-800/80 text-slate-300">
+              <strong className="text-emerald-400 block font-mono text-[10px] uppercase">Clinician Final Authority</strong>
+              AI provides decision support; clinicians retain 100% final override and diagnostic authority.
+            </div>
+          </div>
+
         </div>
       </div>
 

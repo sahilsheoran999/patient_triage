@@ -313,6 +313,30 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = ({
                   </span>
                 </div>
 
+                {/* AI Decision Support & Hybrid Status Badge */}
+                {patient.hybridDecision?.isSafetyFloorEnforced ? (
+                  <div className="bg-rose-950/60 border border-rose-500/50 text-rose-300 text-[10px] px-2 py-1 rounded flex items-center justify-between font-mono">
+                    <span className="flex items-center gap-1">
+                      <ShieldAlert className="w-3 h-3 text-rose-400" />
+                      <span>🛡 SAFETY FLOOR</span>
+                    </span>
+                    <span className="text-[9px] text-rose-400">ML: {patient.mlPrediction?.predictedClass || 'MED'}</span>
+                  </div>
+                ) : patient.hybridDecision?.isDisagreement ? (
+                  <div className="bg-amber-950/50 border border-amber-500/40 text-amber-300 text-[10px] px-2 py-1 rounded flex items-center justify-between font-mono">
+                    <span className="flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3 text-amber-400" />
+                      <span>⚠ ML / RULE</span>
+                    </span>
+                    <span className="text-[9px] text-amber-400">ML: {patient.mlPrediction?.predictedClass} ({(Number(patient.mlPrediction?.topProbability || 0) * 100).toFixed(0)}%)</span>
+                  </div>
+                ) : patient.mlPrediction ? (
+                  <div className="bg-slate-950 border border-slate-800 text-slate-400 text-[10px] px-2 py-0.5 rounded flex items-center justify-between font-mono">
+                    <span className="text-emerald-400">✓ Rule / ML Match</span>
+                    <span>ML: {patient.mlPrediction.predictedClass} ({(patient.mlPrediction.topProbability * 100).toFixed(0)}%)</span>
+                  </div>
+                ) : null}
+
                 {/* Safety Escalation / Deterioration Alert Badge */}
                 {patient.safetyEscalatedDueToUncertainty && (
                   <div className="bg-amber-950/50 border border-amber-500/40 text-amber-300 text-[10px] p-1.5 rounded flex items-center gap-1 font-mono">

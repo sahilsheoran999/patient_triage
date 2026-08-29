@@ -78,14 +78,17 @@ export const ClinicianOverrideModal: React.FC<ClinicianOverrideModalProps> = ({
             
             {/* AI Current Recommendation Summary */}
             <div className="bg-slate-950 p-3.5 rounded-lg border border-slate-800 space-y-2 font-mono">
-              <span className="text-[10px] text-slate-500 uppercase block font-bold">Current System State</span>
+              <span className="text-[10px] text-slate-500 uppercase block font-bold">Current Decision Support State</span>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-slate-400 text-xs">Patient: <strong className="text-white">{patient.id} — {patient.name}</strong></p>
-                  <p className="text-slate-400 text-xs">AI Risk Score: <strong className="text-rose-400">{patient.riskScore}/100</strong> • Confidence: <strong className="text-slate-200">{patient.confidence}%</strong></p>
+                  <p className="text-slate-400 text-xs">
+                    Rule: <strong className="text-slate-200">{patient.hybridDecision?.rulePriority || patient.priority}</strong> (Risk {patient.riskScore}/100) • 
+                    ML: <strong className="text-indigo-300">{patient.mlPrediction?.predictedClass || 'N/A'}</strong> (Prob {((patient.mlPrediction?.topProbability || 0) * 100).toFixed(0)}%)
+                  </p>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-slate-500 uppercase block">Current Priority</span>
+                  <span className="text-[10px] text-slate-500 uppercase block">Hybrid Recommendation</span>
                   <span className="font-bold text-sm text-amber-400">{patient.priority}</span>
                 </div>
               </div>

@@ -87,6 +87,18 @@ export const TopBar: React.FC<TopBarProps> = ({
                 </div>
               )}
             </div>
+
+            {/* AI Decision Support Status Indicator */}
+            <div className="relative group">
+              <span className="bg-indigo-950/60 border border-indigo-500/40 text-indigo-300 text-[10px] font-bold px-2.5 py-1 rounded flex items-center gap-1.5 cursor-help">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+                AI DECISION SUPPORT: ACTIVE
+              </span>
+              <div className="absolute top-full left-0 mt-1.5 w-72 bg-slate-900 border border-indigo-500/40 p-2.5 rounded shadow-2xl text-[11px] text-slate-300 z-50 hidden group-hover:block leading-relaxed">
+                <p className="font-bold text-indigo-300 mb-0.5">XGBoost Advisory Layer</p>
+                XGBoost advisory model. Deterministic safety rules remain the safety authority.
+              </div>
+            </div>
           </div>
         </div>
 

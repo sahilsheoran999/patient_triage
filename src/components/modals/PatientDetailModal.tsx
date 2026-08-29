@@ -11,7 +11,8 @@ import {
   Info, 
   UserCheck, 
   RefreshCw, 
-  HelpCircle 
+  HelpCircle,
+  Brain
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -147,9 +148,11 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
           </div>
 
           {/* Section 9: WHY NOW? Alert */}
-          {(patient.monitoringState === 'REASSESS' || patient.monitoringState === 'ESCALATE' || patient.whyNowReason) && (
+          {(patient.monitoringState === 'REASSESS' || patient.monitoringState === 'ESCALATE' || patient.whyNowReason) && patient.whyNowReason && (
             <WhyNowAlert
-              reason={patient.whyNowReason || 'Safety threshold reached — clinician reassessment recommended.'}
+              title={patient.whyNowTitle}
+              reason={patient.whyNowReason}
+              reasonCode={patient.monitoringReasonCode}
               actionText="REASSESS PATIENT NOW"
               onActionClick={() => onReassessPatient(patient.id)}
             />
@@ -253,7 +256,11 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
                 <div>
                   <span className="text-[9px] text-slate-500 uppercase block">Blood Pressure</span>
                   <span className="font-bold text-xs text-amber-300">
-                    {patient.currentVitals.systolicBp !== null ? `${patient.currentVitals.systolicBp}/${patient.currentVitals.diastolicBp}` : 'UNAVAILABLE'}
+                    {patient.currentVitals.systolicBp !== null
+                      ? patient.currentVitals.diastolicBp !== null
+                        ? `${patient.currentVitals.systolicBp}/${patient.currentVitals.diastolicBp} mmHg`
+                        : `${patient.currentVitals.systolicBp} mmHg`
+                      : 'UNAVAILABLE'}
                   </span>
                 </div>
               </div>
@@ -274,6 +281,174 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
               </div>
             </div>
 
+          </div>
+
+          {/* AI DECISION SUPPORT & HYBRID FUSION PANEL */}
+          <div className="bg-slate-950 p-4 rounded-lg border border-indigo-900/40 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-2 gap-2">
+              <div className="flex items-center gap-2">
+                <Brain className="w-4 h-4 text-indigo-400" />
+                <span className="font-mono text-xs font-bold text-slate-100 uppercase tracking-wider">
+                  AI Decision Support — Hybrid Safety Fusion
+                </span>
+                <span className="text-[9px] bg-indigo-950 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded font-mono">
+                  XGBoost Prototype
+                </span>
+              </div>
+              <span className="text-[10px] text-slate-500 italic">
+                Prototype model trained on synthetic demonstration data. Not clinically validated.
+              </span>
+            </div>
+
+            {/* Side-by-side: Safety/Rule Engine vs XGBoost */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Box 1: Safety/Rule Engine */}
+              <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800 space-y-2">
+                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">
+                  1. Deterministic Rule Engine (Safety Authority)
+                </span>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-slate-500 block">Risk Score</span>
+                    <span className="text-xl font-bold font-mono text-rose-400">{patient.riskScore} <span className="text-xs text-slate-500">/ 100</span></span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-500 block">Rule Priority</span>
+                    <span className={`px-2.5 py-1 rounded text-xs font-mono font-bold ${
+                      patient.hybridDecision?.rulePriority === 'CRITICAL' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' :
+                      patient.hybridDecision?.rulePriority === 'HIGH' ? 'bg-orange-500/20 text-orange-300 border border-orange-500/40' :
+                      patient.hybridDecision?.rulePriority === 'MEDIUM' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
+                      'bg-slate-800 text-slate-300'
+                    }`}>
+                      {patient.hybridDecision?.rulePriority || patient.priority}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Box 2: XGBoost Model */}
+              <div className="bg-slate-900/80 p-3 rounded-lg border border-indigo-950 space-y-2">
+                <span className="text-[10px] font-mono font-bold text-indigo-300 uppercase tracking-wider block">
+                  2. XGBoost Multi-Class Model (Advisory)
+                </span>
+                {patient.mlPrediction ? (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] text-slate-500 block">Model Prediction</span>
+                      <span className={`px-2.5 py-1 rounded text-xs font-mono font-bold ${
+                        patient.mlPrediction.predictedClass === 'CRITICAL' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' :
+                        patient.mlPrediction.predictedClass === 'HIGH' ? 'bg-orange-500/20 text-orange-300 border border-orange-500/40' :
+                        patient.mlPrediction.predictedClass === 'MEDIUM' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40' :
+                        'bg-slate-800 text-slate-300'
+                      }`}>
+                        {patient.mlPrediction.predictedClass}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-500 block">Model Probability</span>
+                      <span className="text-sm font-bold font-mono text-indigo-300">
+                        {(patient.mlPrediction.topProbability * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-500 block">Model Uncertainty</span>
+                      <span className={`text-xs font-mono font-bold ${
+                        patient.mlPrediction.modelUncertainty === 'HIGH' ? 'text-rose-400' :
+                        patient.mlPrediction.modelUncertainty === 'MODERATE' ? 'text-amber-400' : 'text-emerald-400'
+                      }`}>
+                        {patient.mlPrediction.modelUncertainty}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500 italic">AI model unavailable — deterministic safety engine active.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Hybrid Fusion Status Banner */}
+            {patient.hybridDecision?.isSafetyFloorEnforced && (
+              <div className="bg-rose-950/40 border border-rose-500/60 p-2.5 rounded-lg flex items-start gap-2">
+                <ShieldAlert className="w-4 h-4 text-rose-400 mt-0.5 shrink-0" />
+                <div>
+                  <span className="text-xs font-bold font-mono text-rose-300 block">
+                    🛡 SAFETY FLOOR ENFORCED — Final: CRITICAL
+                  </span>
+                  <span className="text-[11px] text-slate-300">
+                    Deterministic safety rules prevented an ML downgrade (XGBoost predicted {patient.mlPrediction?.predictedClass || 'MEDIUM'}).
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {patient.hybridDecision?.isDisagreement && !patient.hybridDecision.isSafetyFloorEnforced && (
+              <div className="bg-amber-950/40 border border-amber-500/60 p-2.5 rounded-lg flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+                <div>
+                  <span className="text-xs font-bold font-mono text-amber-300 block">
+                    ⚠ MODEL / RULE DISAGREEMENT — Final: {patient.priority}
+                  </span>
+                  <span className="text-[11px] text-slate-300">
+                    Rule engine predicted {patient.hybridDecision.rulePriority} vs XGBoost predicted {patient.mlPrediction?.predictedClass}. {patient.hybridDecision.reason}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Class Probability Distribution */}
+            {patient.mlPrediction && (
+              <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-800 space-y-2">
+                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">
+                  Full Class Model Probability Distribution
+                </span>
+                <div className="space-y-1.5 font-mono text-xs">
+                  {(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'NON_URGENT'] as const).map(cls => {
+                    const prob = (patient.mlPrediction?.probabilities[cls] || 0) * 100;
+                    return (
+                      <div key={cls} className="flex items-center gap-3">
+                        <span className="w-24 text-[10px] text-slate-400">{cls}</span>
+                        <div className="flex-1 bg-slate-950 h-2 rounded overflow-hidden">
+                          <div 
+                            className={`h-full ${
+                              cls === 'CRITICAL' ? 'bg-rose-500' :
+                              cls === 'HIGH' ? 'bg-orange-500' :
+                              cls === 'MEDIUM' ? 'bg-amber-500' :
+                              cls === 'LOW' ? 'bg-blue-500' : 'bg-slate-600'
+                            }`}
+                            style={{ width: `${Math.max(1, prob)}%` }}
+                          />
+                        </div>
+                        <span className="w-12 text-right text-[11px] text-slate-300 font-bold">{prob.toFixed(1)}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Top Model Feature Contributions (SHAP-aligned) */}
+            {patient.mlPrediction && patient.mlPrediction.featureContributions.length > 0 && (
+              <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-800 space-y-2">
+                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">
+                  Model Feature Contributions (Local Explainability)
+                </span>
+                <p className="text-[10px] text-slate-500 italic">
+                  Relative influence of patient features on model output (SHAP attribution). Does not imply medical causation.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 font-mono text-[11px]">
+                  {patient.mlPrediction.featureContributions.map((fc, i) => (
+                    <div key={i} className="flex items-center justify-between bg-slate-950 p-2 rounded border border-slate-800">
+                      <span className="text-slate-300 truncate">{fc.displayName}</span>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                        fc.impactDirection === 'increases_acuity' ? 'text-rose-400 bg-rose-950/40' : 'text-slate-400 bg-slate-900'
+                      }`}>
+                        {fc.impactDirection === 'increases_acuity' ? '↑ Risk' : '↓ Risk'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Section 7: PROTOTYPE RISK CONTRIBUTION BAR CHART */}

@@ -57,6 +57,8 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ auditLogs }) => {
             className="bg-slate-950 border border-slate-800 text-slate-300 rounded px-2.5 py-1 text-xs focus:outline-none"
           >
             <option value="ALL">All Event Types</option>
+            <option value="SAFETY_FLOOR_OVERRIDE">Safety Floor Override</option>
+            <option value="MODEL_RULE_DISAGREEMENT">Model / Rule Disagreement</option>
             <option value="CLINICIAN_OVERRIDE">Clinician Override</option>
             <option value="DETERIORATION_DETECTED">Deterioration Detected</option>
             <option value="REASSESSMENT_TRIGGERED">Reassessment Triggered</option>
@@ -87,6 +89,8 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ auditLogs }) => {
                   <td className="p-3 font-bold text-rose-400 whitespace-nowrap">{log.patientId}</td>
                   <td className="p-3 whitespace-nowrap">
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      log.eventType === 'SAFETY_FLOOR_OVERRIDE' ? 'bg-rose-950 text-rose-200 border border-rose-500/80 shadow-sm' :
+                      log.eventType === 'MODEL_RULE_DISAGREEMENT' ? 'bg-amber-950 text-amber-200 border border-amber-500/60' :
                       log.eventType === 'CLINICIAN_OVERRIDE' ? 'bg-indigo-950 text-indigo-300 border border-indigo-500/40' :
                       log.eventType === 'DETERIORATION_DETECTED' ? 'bg-rose-950 text-rose-300 border border-rose-500/40' :
                       log.eventType === 'REASSESSMENT_TRIGGERED' ? 'bg-amber-950 text-amber-300 border border-amber-500/40' :

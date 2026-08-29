@@ -14,18 +14,18 @@ export interface PrototypeRiskWeights {
   history: number;
   heartRateAbnormality: number;
   bpAbnormality: number;
-  respiratoryRateAbnormality: number;
+  temperatureAbnormality: number;
 }
 
 export const PROTOTYPE_RISK_WEIGHTS: PrototypeRiskWeights = {
   spo2Abnormality: 32,
-  respiratorySymptoms: 24,
+  respiratorySymptoms: 24, // Covers tachypnea (RR >= 26) and acute respiratory complaint
   observedDistress: 12,
   ageFactor: 10,
   history: 4,
   heartRateAbnormality: 8,
   bpAbnormality: 6,
-  respiratoryRateAbnormality: 4,
+  temperatureAbnormality: 6,
 };
 
 export const PROTOTYPE_WEIGHTS_DISCLAIMER = 

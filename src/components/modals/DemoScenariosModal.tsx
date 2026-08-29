@@ -28,6 +28,8 @@ export const DemoScenariosModal: React.FC<DemoScenariosModalProps> = ({
     { id: 'G', title: 'Scenario G — Long Wait', patientId: 'P-110', desc: 'Wait time 82m exceeds Medium 30m threshold -> Reassessment' },
     { id: 'H', title: 'Scenario H — Clinician Override', patientId: 'P-111', desc: 'AI Medium -> Clinician overrides to High -> Audit log generated' },
     { id: 'I', title: 'Scenario I — 3× Surge Mode', patientId: 'P-120', desc: 'Activate 3.0× surge volume -> Critical cases pinned & queue updated' },
+    { id: 'J', title: 'Scenario J — ML Catches Interaction', patientId: 'P-127', desc: 'Chest pain + Levine sign -> Rule NON_URGENT (22/100) vs ML MEDIUM (81.9%) -> Upgraded for safety' },
+    { id: 'K', title: 'Scenario K — Safety Floor Override', patientId: 'P-146', desc: 'SpO₂ 78% desaturation -> ML predicts Medium but Safety Floor forces CRITICAL' },
   ];
 
   return (

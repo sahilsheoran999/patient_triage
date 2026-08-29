@@ -10,6 +10,9 @@ export interface RedFlagThresholds {
   systolicBpCriticalHigh: number; // mmHg
   respiratoryRateCriticalHigh: number; // bpm
   heartRateCriticalHigh: number;  // bpm
+  heartRateCriticalLow: number;   // bpm
+  temperatureCriticalHigh: number; // °C
+  temperatureCriticalLow: number;  // °C
 }
 
 export interface WaitThresholds {
@@ -25,6 +28,9 @@ export const DEFAULT_RED_FLAG_THRESHOLDS: RedFlagThresholds = {
   systolicBpCriticalHigh: 200,
   respiratoryRateCriticalHigh: 30,
   heartRateCriticalHigh: 140,
+  heartRateCriticalLow: 40,
+  temperatureCriticalHigh: 40.5,
+  temperatureCriticalLow: 35.0,
 };
 
 export const DEFAULT_WAIT_THRESHOLDS: WaitThresholds = {

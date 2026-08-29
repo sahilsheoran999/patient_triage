@@ -17,7 +17,7 @@ interface PatientIntakeViewProps {
 }
 
 export const PatientIntakeView: React.FC<PatientIntakeViewProps> = ({ onAddPatient }) => {
-  const [patientId, setPatientId] = useState(`P-${Math.floor(121 + Math.random() * 80)}`);
+  const [patientId, setPatientId] = useState(`NEW-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`);
   const [name, setName] = useState('');
   const [age, setAge] = useState<number>(45);
   const [gender, setGender] = useState<'M' | 'F' | 'Other'>('M');
@@ -28,11 +28,11 @@ export const PatientIntakeView: React.FC<PatientIntakeViewProps> = ({ onAddPatie
   const [durationHours, setDurationHours] = useState<number>(4);
   const [associatedSymptomsText, setAssociatedSymptomsText] = useState('');
   
-  // Vitals state
+  // Vitals state — BP intentionally starts blank to enforce UNKNOWN ≠ NORMAL
   const [spo2, setSpo2] = useState<string>('96');
   const [heartRate, setHeartRate] = useState<string>('88');
-  const [systolicBp, setSystolicBp] = useState<string>(''); // INTENTIONALLY EMPTY BY DEFAULT TO DEMO UNKNOWN != NORMAL
-  const [diastolicBp, setDiastolicBp] = useState<string>('');
+  const [systolicBp, setSystolicBp] = useState<string>(''); // BLANK BY DEFAULT TO PRESERVE UNKNOWN != NORMAL
+  const [diastolicBp, setDiastolicBp] = useState<string>(''); // BLANK BY DEFAULT TO PRESERVE UNKNOWN != NORMAL
   const [respiratoryRate, setRespiratoryRate] = useState<string>('18');
   const [temperature, setTemperature] = useState<string>('37.0');
 
@@ -307,14 +307,23 @@ export const PatientIntakeView: React.FC<PatientIntakeViewProps> = ({ onAddPatie
 
         {/* Section 3: Vitals Measurements */}
         <div className="space-y-3 border-b border-slate-800 pb-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <span className="text-xs font-mono font-bold uppercase text-slate-400 tracking-wider">
               3. Vital Signs Measurements
             </span>
-            <span className="text-[11px] text-amber-400 italic">Leave blank if unavailable to test UNKNOWN ≠ NORMAL</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-amber-400 italic">Leave blank if unavailable to test UNKNOWN ≠ NORMAL</span>
+              <button
+                type="button"
+                onClick={() => { setSystolicBp('120'); setDiastolicBp('80'); }}
+                className="text-[10px] font-mono bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded border border-slate-700 transition-colors whitespace-nowrap"
+              >
+                + Fill Demo BP (120/80)
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
             <div>
               <label className="text-xs text-slate-400 block mb-1">SpO₂ (%)</label>
               <input
@@ -346,6 +355,19 @@ export const PatientIntakeView: React.FC<PatientIntakeViewProps> = ({ onAddPatie
                 onChange={(e) => setSystolicBp(e.target.value)}
                 className={`w-full border rounded px-3 py-1.5 text-xs font-mono focus:outline-none ${
                   !systolicBp ? 'bg-amber-950/40 border-amber-500/50 text-amber-300 placeholder-amber-500/60' : 'bg-slate-950 border-slate-800 text-white'
+                }`}
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-400 block mb-1">Diastolic BP (mmHg)</label>
+              <input
+                type="number"
+                placeholder="UNAVAILABLE"
+                value={diastolicBp}
+                onChange={(e) => setDiastolicBp(e.target.value)}
+                className={`w-full border rounded px-3 py-1.5 text-xs font-mono focus:outline-none ${
+                  !diastolicBp ? 'bg-amber-950/40 border-amber-500/50 text-amber-300 placeholder-amber-500/60' : 'bg-slate-950 border-slate-800 text-white'
                 }`}
               />
             </div>
