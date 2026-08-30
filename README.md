@@ -1,402 +1,663 @@
 # PatientTriage.ai
 
-> Clinical decision-support prototype for emergency-department triage, continuous waiting-room monitoring, and hybrid rule-based + machine-learning risk assessment.
+Clinical decision-support prototype for continuous emergency-department triage monitoring using a hybrid deterministic safety architecture and an XGBoost advisory model.
 
 ---
 
 > [!WARNING]
-> ### PROTOTYPE / SIMULATION ONLY — NOT FOR CLINICAL USE
-> * All patient records, clinical presentations, and triage logs in this application are completely **synthetic**.
-> * All physiological thresholds, risk weights, and decision rules are illustrative parameters for demonstration purposes and are **NOT** validated clinical guidelines.
-> * The integrated **XGBoost model** is trained on synthetic demonstration data. Reported benchmark metrics demonstrate prototype architecture behavior and do **NOT** establish clinical validity or diagnostic accuracy.
-> * This system does **NOT** autonomously diagnose patients or make independent medical decisions.
-> * **Licensed clinicians retain 100% final decision and triage authority at all times.**
+> ### PROTOTYPE SIMULATION ONLY — NOT FOR CLINICAL USE
+> * **Synthetic Demonstration Data**: All patient records, clinical scenarios, and triage trajectories in this prototype are generated from synthetic data.
+> * **Illustrative Scoring & Rules**: All physiological thresholds, risk weights, and decision rules are demonstration parameters, not validated clinical guidelines.
+> * **Advisory Model Status**: The integrated XGBoost model is an advisory prototype evaluated on a synthetic benchmark. Reported metrics demonstrate prototype architecture behavior and do **not** establish clinical validity or diagnostic accuracy.
+> * **No Autonomous Diagnosis**: The system does **not** autonomously diagnose disease, prescribe treatment, or make independent medical decisions.
+> * **Clinician Authority**: Licensed clinicians retain 100% final decision authority and oversight over all triage classifications at all times.
 
 ---
 
-## 1. Project Overview
+## Table of Contents
 
-Emergency departments operate under intense time pressure, fluctuating surge volumes, and incomplete intake information. Furthermore, a patient's clinical state is dynamic—conditions can deteriorate rapidly while waiting in queue.
-
-**PatientTriage.ai** demonstrates a safety-first clinical decision-support architecture that unifies:
-* **Structured & Incomplete Intake Handling** with explicit `UNKNOWN ≠ NORMAL` data governance.
-* **Deterministic Safety Rules** acting as an unbreachable safety authority with hard safety floors.
-* **Transparent Rule-Based Risk Scoring** providing fully explainable factor decomposition.
-* **XGBoost Advisory Machine Learning** identifying nonlinear multi-vital clinical patterns.
-* **Model Probability & Model Uncertainty** surfacing model distributions without clinical overclaiming.
-* **Local & Global SHAP Feature Attribution** explaining model predictions transparently.
-* **Hybrid Safety Fusion** enforcing that advisory ML cannot override deterministic safety constraints.
-* **Waiting-Room Radar™** providing continuous vital-trend deterioration tracking and queue wait-time monitoring.
-* **Human-in-the-Loop Governance** requiring mandatory clinician override logging and immutable audit trails.
-
-The system is designed strictly as an **AI-assisted decision-support prototype**, never as an autonomous diagnostic engine.
-
----
-
-## 2. System Architecture
-
-The architecture consists of a sequential 11-layer data and safety pipeline:
-
-```
-                                  PHASE 1: DETERMINISTIC INTAKE & ML ADVISORY INFERENCE
-┌──────────────────┐     ┌──────────────────┐     ┌────────────────────────┐     ┌────────────────────────┐     ┌────────────────────────┐
-│     LAYER 01     │ ──> │     LAYER 02     │ ──> │        LAYER 03        │ ──> │        LAYER 04        │ ──> │        LAYER 05        │
-│   Patient Data   │     │   Data Quality   │     │  Age-Aware Baseline    │     │  Deterministic Safety  │     │ Rule-Based Risk Assess │
-│ (Vitals, Intake) │     │(UNKNOWN ≠ NORMAL)│     │(Ped / Adult / Geriatric│     │(Safety Authority Floors│     │   (Scored Risk 0-100)  │
-└──────────────────┘     └──────────────────┘     └────────────────────────┘     └────────────────────────┘     └────────────────────────┘
-                                                                                             │                               │
-                                                                                             │                               ▼
-                                                                                             │                  ┌────────────────────────┐
-                                                                                             │                  │        LAYER 06        │
-                                                                                             │                  │ XGBoost Advisory Model │
-                                                                                             │                  │  (71 Domain Features)  │
-                                                                                             │                  └────────────────────────┘
-                                                                                             │                               │
-                                                                                             │                               ▼
-                                                                                             │                  ┌────────────────────────┐
-                                                                                             │                  │        LAYER 07        │
-                                                                                             │                  │  Model Probabilities + │
-                                                                                             │                  │    Model Uncertainty   │
-                                                                                             │                  └────────────────────────┘
-                                                                                             │                               │
-                                                                                             ▼                               ▼
-                                                                               ┌─────────────────────────────────────────────────────────┐
-                                                                               │          LAYER 08: SAFETY FUSION / SAFETY FLOOR         │
-                                                                               │  (Deterministic Safety Rules Constrain Advisory Model)  │
-                                                                               │    • ML cannot override deterministic safety floors     │
-                                                                               │    • Model disagreement highlighted for review          │
-                                                                               └─────────────────────────────────────────────────────────┘
-                                                                                                             │
-                                                                                                             ▼
-                                  PHASE 2: HYBRID SAFETY FUSION & CLINICIAN CONTROL
-                                                                               ┌────────────────────────┐     ┌────────────────────────┐
-                                                                               │        LAYER 09        │ ──> │        LAYER 10        │
-                                                                               │  Final Recommendation  │     │   Clinician Decision   │
-                                                                               │   (Decision Support)   │     │ (Final Human Authority)│
-                                                                               └────────────────────────┘     └────────────────────────┘
-                                                                                                                             │
-                                                                                                                             ▼
-                                                                                                              ┌────────────────────────┐
-                                                                                                              │        LAYER 11        │
-                                                                                                              │   Audit & Continuous   │
-                                                                                                              │   Radar Monitoring     │
-                                                                                                              └────────────────────────┘
-```
-
-### Detailed Layer Specifications:
-
-* **Layer 01 — Patient Data (Input):** Captures structured vitals ($\text{SpO}_2$, HR, SBP, DBP, RR, Temperature), demographics (Age, Age Group, Sex), chief complaint, symptom severity ($1\text{–}10$), symptom duration, associated symptoms, medical history, allergies, and clinician-observed physical cues.
-* **Layer 02 — Data Quality (`UNKNOWN ≠ NORMAL`):** Missing vitals or absent history records are never assumed to be normal. Instead, missing fields reduce data completeness percentage, elevate uncertainty penalties, and trigger missing-input safety flags.
-* **Layer 03 — Age-Aware Normalization:** Distinguishes Pediatric ($<18$), Adult ($18\text{–}64$), and Geriatric ($65+$) physiological baselines, applying age-specific multipliers to risk scoring.
-* **Layer 04 — Deterministic Safety Engine (Safety Authority):** Evaluates deterministic Layer 1 physiological red flags that immediately mandate a `CRITICAL` safety floor:
-  * Critical Hypoxemia: $\text{SpO}_2 < 88\%$
-  * Critical Hypotension: $\text{Systolic BP} < 80\text{ mmHg}$
-  * Critical Hypertension: $\text{Systolic BP} \ge 200\text{ mmHg}$
-  * Critical Tachypnea: $\text{Respiratory Rate} \ge 30\text{ /min}$
-  * Critical Tachycardia: $\text{Heart Rate} \ge 140\text{ bpm}$
-  * Critical Bradycardia: $\text{Heart Rate} \le 40\text{ bpm}$
-  * Critical Hyperthermia: $\text{Temperature} \ge 40.5^\circ\text{C}$
-  * Critical Hypothermia: $\text{Temperature} \le 35.0^\circ\text{C}$
-  * Observed Acute Signs: Severe respiratory distress, stridor/wheezing, confusion/delirium, cyanosis, or prolonged capillary refill ($>3\text{s}$).
-  * *Invariant:* **ML cannot override deterministic safety floors.**
-* **Layer 05 — Rule-Based Risk Assessment:** Computes an illustrative weighted risk score ($0\text{–}100$) using configured prototype weights ($\text{SpO}_2$: $32$, Respiratory: $24$, Observed Distress: $12$, Age: $10$, HR: $8$, BP: $6$, Temp: $6$, History: $4$) with transparent factor decomposition.
-* **Layer 06 — XGBoost Advisory Model (Advisory):** Evaluates a 71-feature domain-robust Gradient Boosted Decision Tree ensemble trained across 5 triage acuity classes (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`, `NON_URGENT`).
-* **Layer 07 — Model Probability & Model Uncertainty:** Generates exact class probability distributions, computes top-vs-second probability margins, assesses model uncertainty (`LOW`, `MODERATE`, `HIGH`), and computes local feature attributions via tree SHAP.
-* **Layer 08 — Safety Fusion / Safety Floor:** Fuses the deterministic safety floor and advisory ML output:
-  * If deterministic red flags are present $\rightarrow$ enforces `CRITICAL` priority (`DETERMINISTIC_SAFETY_FLOOR_CRITICAL`).
-  * If ML indicates higher acuity than rules without red flags $\rightarrow$ upgrades priority for safety (`ML_UPGRADE_FOR_SAFETY`) and flags advisory disagreement.
-  * If ML suggests a downgrade below rule assessment $\rightarrow$ preserves rule priority (`RULE_SAFETY_OVERRIDE`).
-* **Layer 09 — Final Recommendation:** Presents the AI-assisted decision-support recommendation alongside rule priority, ML prediction, model probability, uncertainty drivers, and disagreement indicators.
-* **Layer 10 — Clinician Decision (Final Authority):** Licensed clinicians evaluate the recommendation and retain final authority to accept, order reassessment, or manually override the priority. Overrides require a mandatory reason code and clinical note.
-* **Layer 11 — Audit & Continuous Monitoring:** Emits immutable audit log records for every registration, prediction, override, and state change, and hands the patient off to the Waiting-Room Radar™ for active queue monitoring.
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Target Users](#target-users)
+- [System Architecture](#system-architecture)
+- [Clinical Decision Flow](#clinical-decision-flow)
+- [Hybrid Safety Architecture](#hybrid-safety-architecture)
+- [UNKNOWN ≠ NORMAL](#unknown--normal)
+- [Machine Learning Model](#machine-learning-model)
+- [Model Probability vs Uncertainty](#model-probability-vs-uncertainty)
+- [Explainability](#explainability)
+- [Continuous Waiting-Room Monitoring](#continuous-waiting-room-monitoring)
+- [Reassessment & Deterioration Detection](#reassessment--deterioration-detection)
+- [Clinician Override & Audit Logging](#clinician-override--audit-logging)
+- [Edge Cases](#edge-cases)
+- [Benchmark Results](#benchmark-results)
+- [Data & Limitations](#data--limitations)
+- [Technology Stack](#technology-stack)
+- [Project Structure](#project-structure)
+- [Installation](#installation)
+- [Running the Application](#running-the-application)
+- [ML Training Pipeline](#ml-training-pipeline)
+- [Testing & Verification](#testing--verification)
+- [Security & Data Protection](#security--data-protection)
+- [Troubleshooting](#troubleshooting)
+- [FAQ](#faq)
+- [Future Improvements](#future-improvements)
+- [License](#license)
 
 ---
 
-## 3. Hybrid Safety Architecture
+## Overview
 
-The system enforces a strict hierarchy among three distinct authorities:
+Emergency departments (EDs) operate under intense cognitive pressure, fluctuating surge volumes, and incomplete intake data. Conventional triage systems assign a static, one-time acuity score at arrival. However, patient conditions are dynamic:
+
+$$\text{Initial Triage} \ne \text{Permanent Risk}$$
+
+When patients wait for extended periods, silent physiological deterioration can go undetected.
+
+**PatientTriage.ai** addresses this challenge through a hybrid decision-support architecture:
+1. **Deterministic Safety Rules**: Red-flag vital thresholds act as an unbreachable safety authority, establishing hard `CRITICAL` safety floors.
+2. **Rule-Based Risk Scoring**: Transparent, explainable numerical scoring ($0\text{–}100$) decomposes physiological risk factors.
+3. **XGBoost Advisory Model**: A 71-feature multi-class classifier identifies complex multi-vital patterns and non-linear interactions.
+4. **Waiting-Room Radar™**: Continuous queue surveillance monitors vital-sign trends, deterioration deltas, and elapsed wait times.
+5. **Clinician Governance**: Licensed clinicians maintain final decision authority, supported by mandatory override justification and immutable audit logging.
 
 ```
-                    PATIENT DATA
-                         |
-              +----------+----------+
-              |                     |
-       DETERMINISTIC            XGBOOST
-       SAFETY ENGINE            ADVISORY MODEL
-     (Safety Authority)       (Advisory Predictive)
-              |                     |
-        SAFETY FLOOR          MODEL PROBABILITIES
-              |                     |
-              +----------+----------+
-                         |
-                   SAFETY FUSION
-             (Safety Floor Constrains ML)
-                         |
-                FINAL RECOMMENDATION
-                         |
-                 CLINICIAN REVIEW
-              (Final Human Authority)
-                         |
-                 IMMUTABLE AUDIT
+Initial Triage ──> Continuous Monitoring ──> Risk Reassessment ──> Safety Escalation ──> Clinician Review
 ```
 
-| Authority Component | Role in System | Authority Level | Constraint Enforcement |
+---
+
+## Key Features
+
+| Feature | Description |
+|---|---|
+| **Command Center** | Live emergency department queue displaying priority distribution, risk scores, model probability, uncertainty levels, and hybrid status tags. |
+| **Waiting-Room Radar™** | Continuous queue monitoring tracking vital deterioration alerts (`ESCALATE`), wait-time exceedance alerts (`REASSESS`), and passive monitoring (`WATCH`, `SAFE`). |
+| **Patient Intake** | Structured form capturing demographics, vitals, chief complaint, symptom severity/duration, medical history, and clinical cues with real-time completeness tracking. |
+| **`UNKNOWN ≠ NORMAL` Enforcement** | Unmeasured vital signs remain `null`/unavailable, penalizing completeness and elevating uncertainty rather than defaulting to normal baselines. |
+| **Deterministic Red Flags** | Immediate `CRITICAL` safety floors for life-threatening parameters ($\text{SpO}_2 < 88\%$, $\text{SBP} < 80\text{ mmHg}$, $\text{HR} \ge 140\text{ bpm}$, etc.). |
+| **XGBoost Advisory Prediction** | 71-feature multi-class Gradient Boosted Tree ensemble evaluating acuity across 5 classes. |
+| **Hybrid Safety Fusion** | Safety-first reconciliation ensuring that advisory ML predictions can never downgrade a deterministic safety floor. |
+| **SHAP Local Attribution** | Patient-level feature contribution breakdown surfacing exact variables influencing the model prediction. |
+| **Clinician Override System** | Structured override interface requiring mandatory reason codes and clinical justification notes. |
+| **Immutable Audit Logging** | Comprehensive audit trail recording every intake, prediction, threshold alert, override, and queue state change. |
+| **Surge Intelligence** | Interactive $3.0\times$ volume surge simulation evaluating queue pressure and prioritizing critical safety cases. |
+| **Hospital Configuration** | Configurable facility presets (Urban Trauma, Community Hospital, Rural ED) adjusting wait thresholds while preserving safety rules. |
+
+---
+
+## Target Users
+
+1. **Emergency Triage Nurses**: Rapid intake data capture, missing-input awareness, and queue acuity prioritization.
+2. **ED Charge Nurses & Supervisors**: Waiting-room surveillance, surge volume tracking, and deterioration monitoring.
+3. **Emergency Attending Physicians**: Clinical decision support, high-uncertainty case review, and final override authority.
+4. **Clinical Quality & Safety Officers**: Audit trail inspection, safety adherence monitoring, and override pattern analysis.
+
+---
+
+## System Architecture
+
+PatientTriage.ai implements a sequential 11-layer data and safety pipeline:
+
+```
+                  ┌─────────────────────────────────────────────┐
+                  │          01. PATIENT DATA INPUT             │
+                  │   Vitals, Symptoms, History, Cues, Age      │
+                  └──────────────────────┬──────────────────────┘
+                                         │
+                  ┌──────────────────────▼──────────────────────┐
+                  │          02. DATA QUALITY LAYER             │
+                  │   Completeness Check & UNKNOWN ≠ NORMAL     │
+                  └──────────────────────┬──────────────────────┘
+                                         │
+                  ┌──────────────────────▼──────────────────────┐
+                  │      03. AGE-AWARE NORMALIZATION LAYER      │
+                  │     Pediatric / Adult / Geriatric Baselines │
+                  └──────────────────────┬──────────────────────┘
+                                         │
+                  ┌──────────────────────▼──────────────────────┐
+                  │     04. DETERMINISTIC SAFETY ENGINE         │
+                  │   Safety Authority: Hard Red-Flag Checks    │
+                  └──────────────┬──────────────┬───────────────┘
+                                 │              │
+                    Safety Floor │              │ No Red Flag
+                                 │              ▼
+                                 │   ┌──────────────────────────────────┐
+                                 │   │ 05. RULE-BASED RISK ASSESSMENT   │
+                                 │   │ Weighted Score Decomposition     │
+                                 │   └──────────┬───────────────────────┘
+                                 │              │
+                                 │   ┌──────────▼───────────────────────┐
+                                 │   │ 06. XGBOOST ADVISORY MODEL       │
+                                 │   │ 71 Domain-Robust Features        │
+                                 │   └──────────┬───────────────────────┘
+                                 │              │
+                                 │   ┌──────────▼───────────────────────┐
+                                 │   │ 07. PROBABILITY & UNCERTAINTY    │
+                                 │   │ Softmax Distribution & Margin    │
+                                 │   └──────────┬───────────────────────┘
+                                 │              │
+                                 ▼              ▼
+                  ┌─────────────────────────────────────────────┐
+                  │       08. SAFETY FUSION / SAFETY FLOOR      │
+                  │  Deterministic Safety Rules Constrain ML    │
+                  └──────────────────────┬──────────────────────┘
+                                         │
+                  ┌──────────────────────▼──────────────────────┐
+                  │        09. FINAL SYSTEM RECOMMENDATION      │
+                  │     AI-Assisted Decision-Support Output     │
+                  └──────────────────────┬──────────────────────┘
+                                         │
+                  ┌──────────────────────▼──────────────────────┐
+                  │         10. CLINICIAN FINAL DECISION        │
+                  │    Human Authority: Accept / Override       │
+                  └──────────────────────┬──────────────────────┘
+                                         │
+                  ┌──────────────────────▼──────────────────────┐
+                  │     11. AUDIT & CONTINUOUS RADAR MONITORING │
+                  │  Immutable Event Log + Waiting-Room Radar   │
+                  └─────────────────────────────────────────────┘
+```
+
+---
+
+## Clinical Decision Flow
+
+```
+                Patient Intake & Objective Vitals
+                               │
+                               ▼
+            Data Quality Check (UNKNOWN ≠ NORMAL)
+                               │
+                               ▼
+             Deterministic Safety Red-Flag Check
+                               │
+            ┌──────────────────┴──────────────────┐
+            │                                     │
+   [Red Flag Triggered]                  [No Red Flag Triggered]
+            │                                     │
+   CRITICAL Safety Floor                          ▼
+            │                         Rule-Based Risk Score
+            │                                     │
+            │                                     ▼
+            │                           XGBoost Advisory Model
+            │                                     │
+            │                                     ▼
+            │                         Model Probability Distribution
+            │                                     │
+            └──────────────────┬──────────────────┘
+                               │
+                               ▼
+                     Hybrid Safety Fusion
+              • Enforces CRITICAL floor if flagged
+              • Accepts ML upgrade if non-critical
+              • Prevents unsafe ML downgrades
+                               │
+                               ▼
+                     Monitoring State Check
+           (Deterioration? Wait Time Exceeded? Disagreement?)
+                               │
+                               ▼
+                   Clinician Decision Review
+                    (Final Human Authority)
+                               │
+                               ▼
+                 Immutable Audit Log & Radar
+```
+
+---
+
+## Hybrid Safety Architecture
+
+The system enforces a strict hierarchy across four authority tiers:
+
+```
+🟢 CLINICIAN             ──> Final Decision Authority (100% override capability)
+🔴 DETERMINISTIC RULES   ──> Safety Authority (Safety floor strictly enforced)
+🟡 XGBOOST MODEL         ──> Advisory Signal (Cannot downgrade safety floors)
+🔵 DATA QUALITY          ──> Safety Constraint (UNKNOWN ≠ NORMAL)
+```
+
+### Authority Matrix
+
+| Component | Role in System | Authority Level | Safety Constraint |
 |---|---|---|---|
-| **Deterministic Safety Engine** | Hard physiological red-flag evaluation | **Safety Authority** | Strictly enforces `CRITICAL` safety floors; cannot be downgraded by ML. |
-| **XGBoost Classifier** | Multi-feature nonlinear acuity estimation | **Advisory Signal** | Advisory decision support; provides probabilities and feature attributions. |
-| **Safety Fusion Layer** | Rule + ML reconciliation logic | **Safety Gate** | Applies $\max(\text{Safety Floor}, \text{ML Upgrade})$; prevents unsafe downgrades. |
-| **Clinician** | Human-in-the-loop medical triage | **Final Authority** | 100% final override authority; all actions logged to audit trail. |
+| **Deterministic Rules** | Red-flag physiological evaluation | **Safety Authority** | Strictly enforces `CRITICAL` safety floors. Cannot be overridden or downgraded by ML. |
+| **XGBoost Classifier** | Multi-class pattern recognition | **Advisory Signal** | Advisory decision support. Provides class probabilities and SHAP feature attribution. |
+| **Hybrid Safety Fusion** | Algorithmic reconciliation | **Safety Gate** | Applies $\max(\text{Safety Floor}, \text{ML Upgrade})$. Prevents downward classification shifts. |
+| **Licensed Clinician** | Bedside clinical judgement | **Final Authority** | 100% final override authority. Every override emits an immutable audit event. |
+
+### Deterministic Red-Flag Thresholds
+
+| Parameter | Critical Threshold | Safety Action | Implementation Reference |
+|---|---|---|---|
+| **Arterial Oxygen Saturation ($\text{SpO}_2$)** | $< 88\%$ | Immediate `CRITICAL` Safety Floor | `prototypeThresholds.ts:18` |
+| **Systolic Blood Pressure (Low)** | $< 80\text{ mmHg}$ | Immediate `CRITICAL` Safety Floor | `prototypeThresholds.ts:19` |
+| **Systolic Blood Pressure (High)** | $\ge 200\text{ mmHg}$ | Immediate `CRITICAL` Safety Floor | `prototypeThresholds.ts:20` |
+| **Respiratory Rate** | $\ge 30\text{ breaths/min}$ | Immediate `CRITICAL` Safety Floor | `prototypeThresholds.ts:21` |
+| **Heart Rate (High)** | $\ge 140\text{ bpm}$ | Immediate `CRITICAL` Safety Floor | `prototypeThresholds.ts:22` |
+| **Heart Rate (Low)** | $\le 40\text{ bpm}$ | Immediate `CRITICAL` Safety Floor | `prototypeThresholds.ts:23` |
+| **Core Temperature (High)** | $\ge 40.5^\circ\text{C}$ | Immediate `CRITICAL` Safety Floor | `prototypeThresholds.ts:24` |
+| **Core Temperature (Low)** | $\le 35.0^\circ\text{C}$ | Immediate `CRITICAL` Safety Floor | `prototypeThresholds.ts:25` |
+| **Critical Distress Cues** | Stridor, Cyanosis, Confusion/Delirium, Respiratory Distress | Immediate `CRITICAL` Safety Floor | `triageEngine.ts:397-408` |
+
+### Hybrid Fusion Policies
+
+1. `DETERMINISTIC_SAFETY_FLOOR_CRITICAL`: When deterministic red flags trigger, `CRITICAL` priority is strictly enforced even if ML suggests a lower acuity.
+2. `ML_UPGRADE_FOR_SAFETY`: When deterministic rules classify low/medium risk but XGBoost detects high-acuity multi-feature interactions, the final recommendation is upgraded for safety and flagged for clinician review.
+3. `RULE_SAFETY_OVERRIDE`: When rule-based scoring indicates higher acuity than ML without red flags, rule priority is preserved to prevent unsafe downgrading.
+4. `CONCORDANT`: Rule engine and ML arrive at identical acuity levels.
+5. `FALLBACK_DETERMINISTIC_ONLY`: Activated if the ML engine is unavailable.
 
 ---
 
-## 4. Waiting-Room Radar™
+## UNKNOWN ≠ NORMAL
 
-Triage is not a one-time event at the intake desk. Patients in emergency department waiting rooms may experience vital deterioration or exceed safe waiting durations.
+A core data governance principle of PatientTriage.ai is:
+
+$$\text{Missing Data} \ne \text{Normal Physiology}$$
+
+In many digital triage tools, missing inputs (such as unmeasured blood pressure) silently default to normal values (e.g., $120/80\text{ mmHg}$), artificially lowering calculated risk.
+
+In PatientTriage.ai:
+* If Blood Pressure is left blank at intake, it is recorded as `null`/`UNAVAILABLE`.
+* Missing vital inputs reduce the patient's **Data Completeness** score.
+* Missing critical inputs trigger explicit **Uncertainty Drivers** and elevate the **Model Uncertainty** level.
+* Safety bias prevents downgrading acuity when uncertainty is `HIGH`.
 
 ```
-WAITING PATIENT ──> RADAR EVALUATION ──> RISK CHANGE? ──> REASSESS ALERT ──> CLINICIAN REVIEW
-  (Queue State)    (Wait Time + Vitals)   (Delta Diff)     (Why Now Banner)   (Bedside Action)
+Missing Information ──> Reduced Completeness ──> Elevated Uncertainty ──> Safety Bias (No Downgrade)
 ```
-
-### Core Radar Capabilities:
-1. **Deterioration Detection ("What Changed?"):** Tracks historical vital sign series and flags acute drops in queue (e.g. $\text{SpO}_2 \downarrow \ge 3\%$, $\text{Heart Rate} \uparrow \ge 15\text{ bpm}$, $\text{Resp Rate} \uparrow \ge 6\text{ /min}$). Renders an evidence diff showing exact previous vs current values.
-2. **Configured Wait-Time Monitoring:** Continuously compares elapsed wait time against configured prototype thresholds (`CRITICAL`: $0\text{m}$, `HIGH`: $15\text{m}$, `MEDIUM`: $30\text{m}$, `LOW`: $60\text{m}$).
-3. **Truthful "Why Now?" Alerts:** Distinguishes between 5 distinct monitoring triggers with tailored visual indicators:
-   * `SAFETY_RED_FLAG` $\rightarrow$ *"Safety Floor Triggered: SpO₂ Abnormality (<88%). Deterministic safety rules enforce CRITICAL priority."*
-   * `DETERIORATION` $\rightarrow$ *"Deterioration Detected: Vital trend deterioration SpO₂ ↓ 7%; HR ↑ 30 recorded 2m ago."*
-   * `MODEL_RULE_DISAGREEMENT` $\rightarrow$ *"Advisory Model Disagreement: Deterministic rules classify patient as NON_URGENT (Risk 23/100), while XGBoost predicts CRITICAL (46.4%). Clinician review recommended."*
-   * `WAIT_TIME_EXCEEDED` $\rightarrow$ *"Waiting-Time Threshold Exceeded: Patient has waited 85 minutes; configured threshold is 30 minutes."*
-   * `HIGH_UNCERTAINTY` $\rightarrow$ *"High Uncertainty Review: Missing blood pressure and medical history. Cautious review recommended."*
 
 ---
 
-## 5. Machine Learning Architecture & Benchmark
+## Machine Learning Model
 
-### Model Specifications:
-* **Algorithm:** XGBoost (`XGBClassifier`) Multi-Class Gradient Boosted Decision Trees
-* **Target Acuity Classes (5):** `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`, `NON_URGENT`
-* **Features (71):** Objective vitals, derived hemodynamics (Shock Index $\text{HR}/\text{SBP}$, Mean Arterial Pressure, Pulse Pressure), 22 negation-protected clinical concepts extracted from free-text complaints, explicit missingness flags, and nonlinear clinical interaction terms.
-* **Dataset:** 15,000 synthetic emergency triage records (augmented with 1,000 conflicting-signal validation archetypes).
-* **Partition:** 70% Training ($10,500$ rows), 15% Validation ($2,250$ rows), 15% Test ($2,250$ rows).
+### Model Specifications
 
-### Synthetic Demonstration Benchmark Results
+* **Algorithm**: XGBoost (`XGBClassifier`) Multi-Class Decision Forest
+* **Architecture**: 300 boosted tree estimators (60 per class $\times$ 5 classes)
+* **Model Version**: `2.0.0-domain-robust`
+* **Target Classes (5)**: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`, `NON_URGENT`
+* **Feature Count**: 71 engineered domain features
+* **Training Dataset**: 15,000 synthetic triage records
+* **Partition**: 70% Train ($10,500$ rows), 15% Validation ($2,250$ rows), 15% Test ($2,250$ rows)
+* **Inference Engine**: In-browser client-side TypeScript tree evaluation (`mlModel.ts`) with numerically stable softmax
+
+### Feature Extraction Breakdown (71 Features)
+
+1. **Objective Vitals & Demographics (12)**: $\text{SpO}_2$, HR, SBP, DBP, RR, Temperature, Pain Score, Duration, Age, Sex Male, Geriatric ($65+$), Pediatric ($<18$).
+2. **Pain Context Features (4)**: `pain_missing`, `pain_present`, `pain_severe` ($\ge 7$), `pain_zero_with_symptoms`.
+3. **Negation-Protected Clinical Concepts (22)**: Chest pain, palpitations, cardiac arrest history, dyspnea, respiratory distress, stridor, wheezing, cough, altered mental status, stroke signs, seizure/syncope, dizziness, GI bleed, vomiting/nausea, abdominal pain, DKA, neutropenic fever/sepsis, fever symptoms, trauma/fall, elevated INR, psychiatric evaluation, fatigue/weakness.
+4. **Physical Signs & Cues (4)**: Cyanosis, diaphoresis, pallor, Levine sign.
+5. **Physiological Derived Features (7)**: Shock Index ($\text{HR}/\text{SBP}$), Mean Arterial Pressure, Pulse Pressure, HR abnormality, RR abnormality, Temperature abnormality, $\text{SpO}_2$ hypoxemia.
+6. **Nonlinear Clinical Interactions (8)**: Cardiac $\times$ Diaphoresis, Cardiac $\times$ Vomiting, Hypoxemia $\times$ Tachypnea, Fever $\times$ Tachycardia, Shock $\times$ Tachycardia, Altered Mental $\times$ Abnormal Vitals, High-Risk Complaint $\times$ Missing Vitals, Trauma $\times$ Hypotension.
+7. **Explicit Missingness & Data Quality Flags (14)**: Missing flags for all vitals, missing vital count, vitals complete indicator, missing age/sex/duration, observed cues available, medical history available.
+
+---
+
+## Model Probability vs Uncertainty
+
+PatientTriage.ai maintains strict separation between mathematical classifier probability and system uncertainty:
+
+```
+┌──────────────────────────────────────┐     ┌──────────────────────────────────────┐
+│          MODEL PROBABILITY           │     │          MODEL UNCERTAINTY           │
+├──────────────────────────────────────┤     ├──────────────────────────────────────┤
+│ • Mathematical softmax output for    │     │ • Multi-factor system assessment     │
+│   the predicted class (0.0% – 100%)  │     │   ('LOW', 'MODERATE', 'HIGH')        │
+│ • Represents classifier margin       │     │ • Driven by probability margins,     │
+│ • Does NOT imply clinical certainty  │     │   missing data & clinical ambiguity  │
+└──────────────────────────────────────┘     └──────────────────────────────────────┘
+```
+
+* **Model Probability**: The softmax probability assigned by the XGBoost model to its top predicted class (e.g., $81.9\%$ for `MEDIUM`).
+* **Model Uncertainty**: Evaluated via top-versus-second class probability margins ($\Delta < 0.15 \rightarrow \text{HIGH}$ uncertainty) combined with input data completeness.
+
+---
+
+## Explainability
+
+Every model evaluation provides local and global feature attribution via **Tree SHAP** (SHapley Additive exPlanations):
+
+```
+Patient Data ──> Tree Traversal ──> Local SHAP Value ──> Directional Impact (↑ Risk / ↓ Risk)
+```
+
+### Global Feature Importance (Top Variables)
+
+1. `temperature_c` ($0.080$)
+2. `sbp_mmhg` ($0.079$)
+3. `resp_rate_bpm` ($0.076$)
+4. `heart_rate_bpm` ($0.072$)
+5. `spo2_pct` ($0.066$)
+6. `feat_chest_pain` ($0.054$)
+7. `shock_index` ($0.049$)
+8. `feat_altered_mental_status` ($0.045$)
 
 > [!NOTE]
-> These metrics demonstrate prototype model behavior on the synthetic evaluation benchmark. They do **NOT** establish real-world clinical accuracy or medical safety.
+> **Interpretation Guardrail**: SHAP values describe internal model attribution and mathematical feature influence within the tree ensemble. They do **not** establish medical causation or clinical etiology.
 
-| Model / Architecture | Accuracy | Macro F1-Score | Critical Recall (Sensitivity) | High + Critical Sensitivity |
+---
+
+## Continuous Waiting-Room Monitoring
+
+The **Waiting-Room Radar™** runs continuous surveillance across all queued patients:
+
+```
+[Arrival] ──> [Initial Triage] ──> [Waiting Room Queue] ──> [Radar Surveillance] ──> [Alert & Escalation]
+```
+
+### Monitoring States
+
+| State | Badge | Description | Action Required |
+|---|---|---|---|
+| `ESCALATE` | 🔴 Red | Acute vital deterioration or safety red flag triggered | Immediate bedside clinical intervention |
+| `REASSESS` | 🟠 Orange | Queue wait time exceeded configured threshold | Nursing reassessment and vitals refresh |
+| `WATCH` | 🟡 Yellow | Active surveillance (high uncertainty or ML disagreement) | Passive observation and monitoring |
+| `SAFE` | 🟢 Green | Vitals stable, wait duration within safe limits | Standard queue progression |
+
+### Configured Wait-Time Thresholds
+
+| Priority | Maximum Allowable Wait Time |
+|---|---|
+| `CRITICAL` | $0\text{ minutes}$ (Immediate resuscitation) |
+| `HIGH` | $15\text{ minutes}$ |
+| `MEDIUM` | $30\text{ minutes}$ |
+| `LOW` / `NON_URGENT` | $60\text{ minutes}$ |
+
+---
+
+## Reassessment & Deterioration Detection
+
+The system tracks historical vital sign series (`vitalsHistory`) and triggers immediate deterioration alerts upon detecting:
+
+* **Oxygen Saturation Drop**: $\text{SpO}_2 \downarrow \ge 3\%$
+* **Heart Rate Spike**: $\text{Heart Rate} \uparrow \ge 15\text{ bpm}$
+* **Respiratory Rate Increase**: $\text{Respiratory Rate} \uparrow \ge 6\text{ breaths/min}$
+
+When deterioration is detected, the UI renders:
+1. **"Why Now?" Alert Banner**: Contextual justification explaining why the patient requires urgent attention.
+2. **Evidence Diff ("What Changed?")**: Visual table contrasting previous vitals against current readings with directional deltas.
+
+---
+
+## Clinician Override & Audit Logging
+
+### Clinician Override
+
+When a licensed clinician disagrees with an AI recommendation, they can override the acuity via a dedicated interface:
+* **Mandatory Reason Categories**:
+  * New clinical observation
+  * Patient condition changed
+  * Additional information available
+  * AI recommendation inconsistent with physical assessment
+  * Other (detailed in notes)
+* **Clinical Justification**: Free-text clinical notes required.
+* **Clinician Identification**: Logged with clinician name/ID and timestamp.
+
+### Immutable Audit Trail
+
+Every critical operational event is recorded to the audit log (`src/components/views/AuditLogView.tsx`):
+* `PATIENT_REGISTERED`, `VITALS_RECORDED`, `AI_ASSESSMENT_GENERATED`
+* `SAFETY_FLOOR_OVERRIDE`, `MODEL_RULE_DISAGREEMENT`
+* `DETERIORATION_DETECTED`, `REASSESSMENT_TRIGGERED`
+* `CLINICIAN_OVERRIDE`, `SURGE_MODE_ACTIVATED`
+
+---
+
+## Edge Cases
+
+### Case 1: P-127 — Atypical Presentation (ML Catches Interaction)
+
+* **Clinical Presentation**: 45-year-old male presenting with chest pain, vomiting, dizziness, observed Levine sign (clenched fist over sternum), and unmeasured blood pressure.
+* **Deterministic Rule Engine**: Scores $22/100 \rightarrow \text{NON\_URGENT}$ due to missing vitals and low baseline symptom keywords.
+* **XGBoost Advisory Model**: Predicts `MEDIUM` ($81.9\%$ Model Probability) by recognizing the non-linear interaction between chest pain, vomiting, and the Levine sign.
+* **Hybrid Safety Fusion**: Applies `ML_UPGRADE_FOR_SAFETY`, promoting the final system recommendation to `MEDIUM` and triggering an advisory disagreement alert on the Waiting-Room Radar.
+
+### Case 2: P-146 — Safety Floor Enforcement (Deterministic Override)
+
+* **Clinical Presentation**: 45-year-old male presenting with mild cough, fever ($38.2^\circ\text{C}$), severe hypoxemia ($\text{SpO}_2 = 78\%$), and bradycardia ($49\text{ bpm}$).
+* **XGBoost Advisory Model**: Predicts `MEDIUM` based on benign chief complaint text ("fever and cold").
+* **Deterministic Safety Rule**: Red flag triggers immediately for Critical Hypoxemia ($\text{SpO}_2 < 88\%$).
+* **Hybrid Safety Fusion**: Applies `DETERMINISTIC_SAFETY_FLOOR_CRITICAL`, strictly enforcing `CRITICAL` priority and preventing an unsafe ML downgrade. In 100% of tested safety-floor scenarios, deterministic safety rules successfully override lower ML predictions.
+
+---
+
+## Benchmark Results
+
+### Prototype Benchmark on Synthetic Demonstration Data
+
+> [!NOTE]
+> The following benchmark results were evaluated on a held-out test split ($2,250$ records) of the synthetic demonstration dataset. These results demonstrate prototype architecture behavior and do **not** represent real-world clinical performance.
+
+| Model / Architecture | Accuracy | Macro F1-Score | Critical Class Recall | High + Critical Sensitivity |
 |---|---:|---:|---:|---:|
 | **Deterministic Rules Only** | $44.71\%$ | $30.90\%$ | $91.53\%$ | $88.24\%$ |
-| **Logistic Regression Baseline** | $83.51\%$ | $81.00\%$ | $92.82\%$ | $95.12\%$ |
+| **Multinomial Logistic Regression Baseline** | $83.51\%$ | $81.00\%$ | $92.82\%$ | $95.12\%$ |
 | **XGBoost Advisory Model (V1)** | $85.82\%$ | $83.47\%$ | $95.21\%$ | $97.65\%$ |
 | **XGBoost Domain-Robust Model (V2)** | **$90.79\%$** | **$88.20\%$** | **$95.99\%$** | **$98.87\%$** |
 
-* **Zero Catastrophic Misses:** In testing across held-out synthetic test sets, $0$ true Critical patients were predicted as Low or Non-Urgent.
-* **External Zero-Shot EHR Benchmark:** Evaluated on an untouched holdout of $207$ labeled MIMIC-IV-ED records, the domain-robust feature engineering increased Critical resuscitation recall from $0.00\% \rightarrow 88.89\%$ ($16/18$ detected) and High+Critical sensitivity from $13.91\% \rightarrow 61.74\%$ ($71/115$ detected) without tuning to the external dataset.
+* **Zero Catastrophic Misses**: On the synthetic holdout test set, $0$ true Critical patients were predicted as Low or Non-Urgent.
+* **External EHR Holdout Evaluation**: Evaluated on an un-tuned holdout of $207$ labeled MIMIC-IV-ED records, domain-robust feature extraction identified $88.89\%$ ($16/18$) of Critical resuscitation cases.
 
 ---
 
-## 6. Safety Edge Cases & Demonstrations
+## Data & Limitations
 
-The system includes pre-configured synthetic demo cases illustrating the hybrid decision architecture:
+### Prominent Clinical Limitations
 
-### Case 1: P-127 (Atypical Presentation — Model Disagreement)
-* **Presentation:** Crushing substernal chest pressure, diaphoresis, vomiting, Levine sign, unmeasured blood pressure.
-* **Rule Engine:** Risk Score $22/100 \rightarrow \text{NON\_URGENT}$ (due to missing vitals and low baseline rule coverage).
-* **XGBoost Prediction:** $\text{MEDIUM} / \text{HIGH}$ ($81.9\%$ probability) recognizing multi-symptom coronary ischemia pattern.
-* **Safety Fusion Policy:** `ML_UPGRADE_FOR_SAFETY` upgrades final recommendation to $\text{MEDIUM}$, flags advisory disagreement, and highlights patient on Waiting-Room Radar.
-
-### Case 2: P-146 (Deterministic Red Flag — Safety Floor Enforced)
-* **Presentation:** Elderly patient presenting with cough, fever, severe hypoxemia ($\text{SpO}_2 = 78\%$), bradycardia ($\text{HR} = 49\text{ bpm}$).
-* **XGBoost Prediction:** Advisory model predicts $\text{MEDIUM}$ ($87.8\%$ probability) based on benign text symptoms.
-* **Rule Engine:** Layer 1 Red Flag triggers immediately ($\text{SpO}_2 < 88\%$).
-* **Safety Fusion Policy:** `DETERMINISTIC_SAFETY_FLOOR_CRITICAL` strictly enforces $\text{CRITICAL}$ priority, overriding the lower ML advisory prediction.
+1. **Synthetic Training Data**: The model is trained and tested exclusively on synthetic demonstration data. Synthetic distributions cannot replicate the complexity, comorbid noise, or distribution shifts of real hospital EHR environments.
+2. **Not Clinically Validated**: This system has **not** undergone clinical trials, institutional review board (IRB) review, or prospective hospital validation.
+3. **Not a Medical Device**: The software is not approved or certified as Software as a Medical Device (SaMD) by CDSCO, FDA, CE, or any regulatory authority.
+4. **Prototype Status**: Numerical risk weights and red-flag thresholds are illustrative demonstration parameters.
+5. **Mandatory Human Oversight**: The system is designed strictly for decision support. Clinician oversight is required for every triage decision.
 
 ---
 
-## 7. Explainability & Interpretability
+## Technology Stack
 
-* **Global Explainability (Tree SHAP):** Global feature importances across the ensemble show balanced attribution across objective physiology ($\text{Temp}: 0.080$, $\text{SBP}: 0.079$, $\text{RR}: 0.076$, $\text{HR}: 0.072$, $\text{SpO}_2: 0.066$), clinical concepts ($\text{Chest Pain}: 0.054$, $\text{Altered Mental Status}: 0.045$), and derived hemodynamics ($\text{Shock Index}: 0.049$).
-* **Local Explainability (Patient Detail):** Every patient evaluation displays the top 5 SHAP feature contributions, indicating the direction of influence (`increases_acuity` vs `decreases_acuity`).
-* *Interpretation Guardrail:* SHAP values represent **mathematical feature attributions** within the decision tree ensemble and do **NOT** imply clinical causation or diagnostic etiology.
+### Application Frontend
+
+| Technology | Version | Purpose |
+|---|---|---|
+| **React** | `18.2.0` | Component-based interactive UI framework |
+| **TypeScript** | `5.3.3` | Strict static typing and interface contracts |
+| **Vite** | `5.1.6` | Development server and production bundler |
+| **Tailwind CSS** | `3.4.1` | Dark clinical dashboard design system |
+| **Recharts** | `2.12.2` | Interactive vitals trend lines and SHAP feature charts |
+| **Lucide React** | `0.354.0` | Clinical, operational, and navigational iconography |
+| **Framer Motion** | `11.0.8` | UI transitions and queue animations |
+
+### Machine Learning Pipeline
+
+| Technology | Purpose |
+|---|---|
+| **Python 3.10+** | Feature engineering and model training runtime |
+| **XGBoost** | Gradient Boosted Decision Tree multi-class classifier |
+| **scikit-learn** | Stratified splitting, logistic regression baseline, evaluation metrics |
+| **SHAP** | TreeExplainer model attribution and feature importance computation |
+| **pandas & NumPy** | Data manipulation and numerical operations |
 
 ---
 
-## 8. Implemented Features
-
-* **Command Center:** Real-time ED board with active patient cards, wait times, priority badges, category filters, and live surge simulation.
-* **Waiting-Room Radar™:** Continuous queue timeline monitoring with automated vital deterioration detection and wait-time threshold alerts.
-* **Patient Intake View:** Interactive registration form capturing vitals, complaints, severity, duration, history, and cues with live data completeness gauge and explicit `UNKNOWN ≠ NORMAL` preservation.
-* **Patient Detail Modal:** Comprehensive clinical dossier with vitals timeline chart, SHAP feature attributions, hybrid decision breakdown, and override controls.
-* **Clinician Override Modal:** Human-in-the-loop override interface requiring mandatory reason codes and clinical notes with live audit emission.
-* **Audit Log View:** Immutable audit trail logging all system registrations, model predictions, rule triggers, overrides, and radar alerts.
-* **Safety Policy View:** Interactive clinical safety policy documentation and visual 10-stage hybrid architecture diagram.
-* **Analytics & Performance View:** Model probability distributions, uncertainty analytics, and prototype performance metrics.
-* **Hospital Configuration:** Customizable red-flag vitals thresholds and maximum allowable wait times.
-* **Data Protection & Governance:** Compliance view modeling synthetic healthcare data protections and DPDP principles.
-
----
-
-## 9. Project Structure
+## Project Structure
 
 ```
-patient-triage/
+patient_triage/
+├── docs/
+│   └── PatientTriage_Submission.md            # Comprehensive competition submission document
 ├── ml/
 │   ├── data/
 │   │   ├── patienttriage_synthetic_xgboost_15000.csv  # Synthetic dataset (15k rows)
 │   │   ├── patienttriage_synthetic_v2.csv             # Augmented dataset (16k rows)
-│   │   └── splits/                                    # Train / Val / Test splits
+│   │   └── splits/                                    # train.csv, val.csv, test.csv
 │   ├── models/
-│   │   ├── xgboost_triage_model_v1.json               # Baseline XGBoost model
-│   │   ├── xgboost_triage_model_v2.json               # Domain-robust XGBoost model
+│   │   ├── xgboost_triage_model_v1.json               # Baseline model artifact
+│   │   ├── xgboost_triage_model_v2.json               # Domain-robust model artifact
 │   │   ├── feature_metadata_v2.json                   # 71-feature metadata schema
 │   │   └── logistic_regression_baseline.joblib        # Baseline linear model
 │   └── src/
-│       ├── features.py                                # Baseline feature engineering
+│       ├── features.py                                # Baseline feature extraction
 │       ├── features_v2.py                             # 71-feature domain-robust pipeline
 │       ├── split.py                                   # Stratified dataset partitioning
 │       ├── train_models.py                            # Model training with early stopping
-│       ├── baseline_rules.py                          # Rule engine evaluation
-│       └── evaluate.py                                # Comprehensive model benchmark
+│       ├── baseline_rules.py                          # Deterministic rule evaluation
+│       └── evaluate.py                                # Model benchmark and evaluation
 ├── src/
 │   ├── components/
-│   │   ├── common/                                    # Reusable UI alerts & badges
-│   │   ├── layout/                                    # TopBar & navigation
-│   │   ├── modals/                                    # PatientDetail, Override, Architecture
-│   │   └── views/                                     # CommandCenter, Radar, Intake, Safety
+│   │   ├── common/                                    # WhyNowAlert, WhatChangedDiff
+│   │   ├── layout/                                    # TopBar, Sidebar
+│   │   ├── modals/                                    # PatientDetail, Override, Architecture, Demo
+│   │   └── views/                                     # CommandCenter, Radar, Intake, Safety, etc.
 │   ├── config/
-│   │   ├── ageGroupConfig.ts                          # Pediatric, adult, geriatric configs
-│   │   ├── prototypeThresholds.ts                     # Red flag & wait time thresholds
-│   │   └── riskWeights.ts                             # Rule-based scoring weights
+│   │   ├── ageGroupConfig.ts                          # Pediatric, adult, geriatric parameters
+│   │   ├── hospitalProfiles.ts                        # Facility configuration presets
+│   │   ├── prototypeThresholds.ts                     # Red-flag & wait-time thresholds
+│   │   └── riskWeights.ts                             # Rule scoring weights
 │   ├── data/
-│   │   └── syntheticPatients.ts                       # Pre-configured synthetic scenarios
+│   │   └── syntheticPatients.ts                       # 22 pre-configured synthetic patients
 │   ├── engine/
 │   │   ├── mlModel.ts                                 # In-browser XGBoost inference engine
-│   │   ├── modelData.ts                               # Exported decision tree data (1,500 trees)
+│   │   ├── modelData.ts                               # Exported decision tree ensemble
 │   │   └── triageEngine.ts                            # Deterministic rules & hybrid fusion
 │   ├── types/
 │   │   └── index.ts                                   # Core TypeScript interfaces
-│   ├── App.tsx                                        # Root application component
-│   └── main.tsx                                       # Vite application entry point
-├── package.json                                       # Dependencies and build scripts
-├── tsconfig.json                                      # TypeScript configuration
-├── vite.config.ts                                     # Vite build configuration
-└── README.md                                          # Complete architecture documentation
+│   ├── App.tsx                                        # Root application shell
+│   └── main.tsx                                       # Application entry point
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+└── README.md
 ```
 
 ---
 
-## 10. Tech Stack
+## Installation
 
-### Frontend & Application:
-* **React 18** (`react`, `react-dom`) — Component-driven reactive UI
-* **TypeScript 5.3** — Strict static type checking and interface contracts
-* **Vite 5.4** — High-performance ES module bundler and dev server
-* **Tailwind CSS 3.4** — Dark clinical mission-control design system
-* **Lucide React** — Consistent medical and operational iconography
-* **Recharts 2.12** — Interactive vitals trends and feature attribution charts
-* **Framer Motion 11.0** — Smooth queue state and transition animations
-
-### Machine Learning & Data Pipeline:
-* **Python 3.10+** — ML training and feature engineering runtime
-* **XGBoost** (`xgboost`) — Gradient Boosted Decision Tree ensemble
-* **scikit-learn** — Stratified dataset splitting and baseline evaluation
-* **SHAP** — TreeExplainer model attribution and feature importance
-* **pandas & NumPy** — Tabular data manipulation and numerical operations
-
----
-
-## 11. Getting Started
-
-### Prerequisites:
+### Prerequisites
 * **Node.js**: v18.0 or higher
 * **npm**: v9.0 or higher
 
-### Local Installation:
+### Step-by-Step Setup
 
-1. Clone the repository:
+1. **Clone the repository**:
    ```bash
    git clone https://github.com/sahilsheoran999/patient_triage.git
    cd patient_triage
    ```
 
-2. Install dependencies:
+2. **Install Node.js dependencies**:
    ```bash
    npm install
    ```
 
-3. Launch the development server:
-   ```bash
-   npm run dev
-   ```
-   Open [http://localhost:5173](http://localhost:5173) in your browser.
+---
 
-### Quality & Build Verification:
+## Running the Application
 
-Run strict TypeScript typechecking:
+### Development Mode
+Launch the local Vite development server:
 ```bash
-npx tsc --noEmit
+npm run dev
 ```
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-Build the production distribution package:
+### Production Build & Preview
 ```bash
 npm run build
+npm run preview
 ```
 
 ---
 
-## 12. Retraining the ML Model (Optional)
+## ML Training Pipeline
 
-To reproduce or retrain the XGBoost triage model:
+To reproduce the dataset split, train the XGBoost model, and run benchmark evaluations:
 
-1. Set up a Python virtual environment and install dependencies:
+1. **Install Python dependencies**:
    ```bash
    pip install xgboost scikit-learn shap pandas numpy joblib
    ```
 
-2. Partition the dataset:
+2. **Create stratified data splits**:
    ```bash
    python ml/src/split.py
    ```
 
-3. Train the baseline and XGBoost models:
+3. **Train baseline and XGBoost models**:
    ```bash
    python ml/src/train_models.py
    ```
 
-4. Run evaluation and SHAP analysis:
+4. **Run model evaluation and SHAP analysis**:
    ```bash
    python ml/src/evaluate.py
    ```
 
 ---
 
-## 13. Limitations
+## Testing & Verification
 
-* **Synthetic Data Only:** The model and prototype are trained and evaluated exclusively on synthetic data. Real clinical environments exhibit severe distribution shifts, comorbidities, and unmeasured confounding not present in synthetic datasets.
-* **No Clinical Validation:** This system has **not** undergone prospective clinical trials, institutional review, or hospital EHR validation.
-* **No Regulatory Approval:** The software is not certified as a medical device (SaMD) by the FDA, CE, CDSCO, or any regulatory body.
-* **Illustrative Parameters:** All numerical risk weights and thresholds are prototype demonstrations and must not be used as clinical guidelines.
-* **Mandatory Human Authority:** The system must never be used autonomously. Clinician oversight is mandatory for all patient assessments.
+Run strict TypeScript type-checking:
+```bash
+npx tsc --noEmit
+```
 
----
-
-## 14. Future Work
-
-1. Validation on appropriately governed, de-identified real-world clinical datasets.
-2. Multi-center external validation across diverse healthcare systems.
-3. Probability calibration analysis across demographic subgroups.
-4. Temporal and seasonal distribution shift monitoring.
-5. Prospective shadow evaluation alongside licensed triage nurses.
-6. Automated model drift and data quality degradation alarms.
-7. Integration with standardized clinical terminologies (SNOMED-CT, LOINC).
-8. Formal clinical governance and regulatory assessment.
+Execute the full production build:
+```bash
+npm run build
+```
 
 ---
 
-## 15. Development Status
+## Security & Data Protection
 
-* **Status:** Functional prototype / simulation environment.
-* **Build Verification:** `npx tsc --noEmit` (0 errors), `npm run build` (Exit code 0).
-* **License:** MIT (Prototype Simulation Only).
+* **Zero Real PHI**: The repository contains exclusively synthetic patient profiles.
+* **Privacy-by-Design**: Masked patient identifiers (`P-***`) prevent exposure of direct identifiers.
+* **Immutable Audit Trail**: All overrides and system state changes are permanently logged.
+* **Client-Side Processing**: ML inference executes locally in-browser without sending patient telemetry to external AI endpoints.
 
+---
+
+## Troubleshooting
+
+| Issue | Cause | Solution |
+|---|---|---|
+| `npx tsc --noEmit` fails on imports | Missing node modules | Run `npm install` |
+| Vite dev server port conflict | Port 5173 in use | Vite will automatically select the next open port (e.g., 5174) |
+| Python script `FileNotFoundError` | Executing from wrong directory | Run scripts from repository root (`python ml/src/train_models.py`) |
+
+---
+
+## FAQ
+
+**Q: Is PatientTriage.ai clinically validated?**
+A: No. It is a research prototype evaluated on synthetic demonstration data.
+
+**Q: Can the XGBoost model override a critical safety rule?**
+A: No. Deterministic safety rules act as an unbreachable safety authority. A `CRITICAL` safety floor can never be downgraded by the advisory model.
+
+**Q: Is Model Probability the same as clinical confidence?**
+A: No. Model probability reflects the classifier's mathematical softmax distribution across classes. System uncertainty is assessed separately.
+
+**Q: Can the system autonomously triage patients?**
+A: No. Licensed clinicians retain 100% final decision authority over all patient assessments.
+
+---
+
+## Future Improvements
+
+* [ ] Validation on governed, de-identified real-world clinical datasets.
+* [ ] Multi-center external validation across academic and community emergency departments.
+* [ ] Prospective shadow evaluation alongside licensed emergency triage nurses.
+* [ ] Conformal prediction for statistically rigorous uncertainty bounds.
+* [ ] Integration with HL7 FHIR and hospital EHR systems.
+* [ ] Formal regulatory and clinical safety evaluation.
+
+---
+
+## License
+
+* **Status**: Competition Technical Submission Prototype
+* **License**: MIT (Prototype Simulation Only)
