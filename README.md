@@ -438,8 +438,8 @@ Every critical operational event is recorded to the audit log (`src/components/v
 | **XGBoost Advisory Model (V1)** | $85.82\%$ | $83.47\%$ | $95.21\%$ | $97.65\%$ |
 | **XGBoost Domain-Robust Model (V2)** | **$90.79\%$** | **$88.20\%$** | **$95.99\%$** | **$98.87\%$** |
 
-* **Zero Catastrophic Misses**: On the synthetic holdout test set, $0$ true Critical patients were predicted as Low or Non-Urgent.
-* **External EHR Holdout Evaluation**: Evaluated on an un-tuned holdout of $207$ labeled MIMIC-IV-ED records, domain-robust feature extraction identified $88.89\%$ ($16/18$) of Critical resuscitation cases.
+* **Zero Critical→Low/Non-Urgent Misclassifications in the Synthetic Holdout Test Set**: On the evaluated synthetic test partition ($2,250$ records), $0$ true Critical cases were classified into Low or Non-Urgent categories. *(Note: This result applies strictly to the evaluated synthetic test set and does not establish real-world clinical safety or diagnostic accuracy.)*
+* **Exploratory Generalization Benchmark on De-Identified EHR Sample**: Evaluated on an untouched holdout sample of $207$ labeled records from the MIMIC-IV-ED database (`ml/data/triage.csv.gz`, ESI levels 1–4), the domain-robust feature extraction identified $88.89\%$ ($16/18$) of Critical resuscitation cases (ESI Level 1) and $61.74\%$ ($71/115$) of High+Critical cases (ESI Levels 1–2) in zero-shot evaluation without fine-tuning. This exploratory evaluation demonstrates prototype transferability under missing data conditions, but does not constitute prospective clinical validation.
 
 ---
 
