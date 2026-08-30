@@ -1,15 +1,12 @@
-import React, { useState } from 'react';
-import { 
-  Activity, 
-  ShieldAlert, 
-  Play, 
-  Layers, 
-  UserCheck, 
-  ChevronDown, 
-  Flame, 
-  Info, 
-  CheckCircle2, 
-  Building2 
+import React from 'react';
+import {
+  Activity,
+  Play,
+  Flame,
+  Building2,
+  Layers,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { SurgeState } from '../../types';
 
@@ -22,6 +19,8 @@ interface TopBarProps {
   onRunSignatureDemo: () => void;
   onOpenArchitectureModal: () => void;
   currentHospitalName: string;
+  theme: 'light' | 'dark';
+  onToggleTheme: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -33,148 +32,126 @@ export const TopBar: React.FC<TopBarProps> = ({
   onRunSignatureDemo,
   onOpenArchitectureModal,
   currentHospitalName,
+  theme,
+  onToggleTheme,
 }) => {
-  const [showTooltip, setShowTooltip] = useState(false);
-
   return (
-    <header className="bg-slate-950 border-b border-slate-800 text-slate-100 sticky top-0 z-40 shadow-xl select-none">
-      <div className="px-4 py-2.5 flex items-center justify-between gap-4">
-        
-        {/* Left Section — Product Branding & Positioning Badges */}
+    <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 sticky top-0 z-40 shadow-sm select-none transition-colors">
+      <div className="px-4 py-2 flex items-center justify-between gap-4">
+
+        {/* Left Section — Product Branding & Facility */}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="bg-gradient-to-br from-rose-500 to-rose-700 p-2 rounded-lg text-white shadow-lg shadow-rose-950/50">
-              <Activity className="w-5 h-5 animate-pulse" />
+            <div className="bg-slate-900 dark:bg-slate-800 text-white p-1.5 rounded flex items-center justify-center border border-transparent dark:border-slate-700">
+              <Activity className="w-4 h-4 text-rose-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-base tracking-tight text-white font-mono">
-                  PatientTriage<span className="text-rose-500">.ai</span>
+                <span className="font-bold text-sm tracking-tight text-slate-900 dark:text-white">
+                  PatientTriage<span className="text-rose-600 dark:text-rose-500">.ai</span>
                 </span>
-                <span className="bg-slate-900 border border-slate-800 text-slate-300 text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  Continuous Safety Layer
+                <span className="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[10px] font-medium px-2 py-0.5 rounded">
+                  Clinical Operations
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-medium">
-                See risk before it becomes a crisis.
-              </p>
             </div>
           </div>
 
-          <div className="hidden lg:flex items-center gap-2 pl-3 border-l border-slate-800">
-            {/* Clinical Decision Support Badge */}
-            <span className="bg-slate-900 border border-slate-700/80 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded flex items-center gap-1.5 shadow-sm">
-              <ShieldAlert className="w-3.5 h-3.5 text-emerald-400" />
-              CLINICAL DECISION SUPPORT
-            </span>
-
-            {/* Global Simulation Environment Safety Badge */}
-            <div className="relative">
-              <span 
-                onMouseEnter={() => setShowTooltip(true)}
-                onMouseLeave={() => setShowTooltip(false)}
-                className="bg-amber-950/60 border border-amber-500/40 text-amber-300 text-[10px] font-bold px-2.5 py-1 rounded flex items-center gap-1.5 cursor-help"
-              >
-                <Info className="w-3.5 h-3.5 text-amber-400" />
-                SIMULATION ENVIRONMENT
-                <span className="text-[9px] font-normal text-amber-400/80">(Synthetic Data • Prototype)</span>
-              </span>
-
-              {showTooltip && (
-                <div className="absolute top-full left-0 mt-1.5 w-72 bg-slate-900 border border-amber-500/40 p-3 rounded shadow-2xl text-[11px] text-slate-300 z-50 leading-relaxed">
-                  <p className="font-bold text-amber-300 mb-1">Prototype Simulation Notice</p>
-                  This demonstration uses synthetic patient data and illustrative prototype parameters. It is not intended for clinical deployment.
-                </div>
-              )}
+          <div className="hidden md:flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400">
+            <div className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
+              <Building2 className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+              <span>{currentHospitalName}</span>
             </div>
-
-            {/* AI Decision Support Status Indicator */}
-            <div className="relative group">
-              <span className="bg-indigo-950/60 border border-indigo-500/40 text-indigo-300 text-[10px] font-bold px-2.5 py-1 rounded flex items-center gap-1.5 cursor-help">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
-                AI DECISION SUPPORT: XGBoost Advisory • Safety Rules Authority
-              </span>
-              <div className="absolute top-full left-0 mt-1.5 w-80 bg-slate-900 border border-indigo-500/40 p-3 rounded-lg shadow-2xl text-[11px] text-slate-300 z-50 hidden group-hover:block leading-relaxed">
-                <p className="font-bold text-indigo-300 mb-1">Hybrid Decision Support</p>
-                <p className="text-slate-300 mb-2">
-                  XGBoost provides multi-class advisory predictions. Deterministic safety rules enforce hard safety floors, and clinicians retain final decision authority.
-                </p>
-                <div className="pt-2 border-t border-slate-800 flex flex-col gap-1 text-[10px] font-mono">
-                  <span className="text-emerald-400 font-semibold">🟢 Clinician (Final Authority)</span>
-                  <span className="text-rose-400 font-semibold">🔴 Deterministic Rules (Safety Authority)</span>
-                  <span className="text-indigo-300 font-semibold">🟡 XGBoost (Advisory Predictive)</span>
-                  <span className="text-amber-300 font-semibold">🔵 Data Quality (UNKNOWN ≠ NORMAL)</span>
-                </div>
-              </div>
-            </div>
+            <span className="text-slate-300 dark:text-slate-700">·</span>
+            <span className="text-slate-500 dark:text-slate-400">Emergency Department</span>
           </div>
         </div>
 
-        {/* Center / Hospital & Emergency Department Status */}
-        <div className="hidden md:flex items-center gap-3 bg-slate-900/80 border border-slate-800 px-3 py-1.5 rounded-lg text-xs">
-          <div className="flex items-center gap-1.5 text-slate-300 font-medium">
-            <Building2 className="w-4 h-4 text-slate-400" />
-            <span className="text-slate-200">{currentHospitalName}</span>
-          </div>
-          <span className="text-slate-700">|</span>
-          <span className="text-slate-400 font-mono">Emergency Dept</span>
-          <span className="text-slate-700">|</span>
-          
+        {/* Center / Subtle Prototype Status */}
+        <div className="hidden lg:flex items-center gap-3">
+          <span className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-[11px] px-2.5 py-1 rounded flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+            <span>Simulation Mode · Synthetic Demonstration Data</span>
+          </span>
+
+          <button
+            onClick={onOpenArchitectureModal}
+            className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 px-2 py-1 rounded transition-colors flex items-center gap-1"
+            title="View 11-Layer Architecture"
+          >
+            <Layers className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+            <span>Architecture Flow</span>
+          </button>
+        </div>
+
+        {/* Right Section — Controls, Counters & Clinician */}
+        <div className="flex items-center gap-3">
+
+          {/* Theme Toggle (Light / Dark) */}
+          <button
+            onClick={onToggleTheme}
+            className="p-1.5 rounded border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            title={theme === 'light' ? 'Switch to Clinical Dark Mode' : 'Switch to Clinical Light Mode'}
+          >
+            {theme === 'light' ? (
+              <Moon className="w-3.5 h-3.5 text-slate-600" />
+            ) : (
+              <Sun className="w-3.5 h-3.5 text-amber-400" />
+            )}
+          </button>
+
           {/* Normal vs Surge Mode Toggle */}
           <button
             onClick={onToggleSurge}
-            className={`px-2.5 py-1 rounded font-bold text-[11px] transition-all flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors flex items-center gap-1.5 border ${
               surgeState.isActive
-                ? 'bg-rose-600 text-white shadow-lg shadow-rose-950 animate-pulse'
-                : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300'
+                : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
             }`}
           >
-            <Flame className={`w-3.5 h-3.5 ${surgeState.isActive ? 'text-amber-300' : 'text-slate-400'}`} />
-            <span>{surgeState.isActive ? `SURGE MODE 3.0×` : 'NORMAL MODE'}</span>
+            <Flame className={`w-3.5 h-3.5 ${surgeState.isActive ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500'}`} />
+            <span>{surgeState.isActive ? `Surge Mode (3.0×)` : 'Normal Mode'}</span>
           </button>
-        </div>
 
-        {/* Right Section — Counters & Interactive Demo Launchers */}
-        <div className="flex items-center gap-2.5">
-          {/* Active Patients & Alerts Badges */}
-          <div className="hidden sm:flex items-center gap-2 font-mono text-xs">
-            <div className="bg-slate-900 border border-slate-800 px-2.5 py-1 rounded text-slate-300">
-              Patients: <span className="text-white font-bold">{activePatientCount}</span>
+          {/* Patient / Alert Metric Pills */}
+          <div className="hidden sm:flex items-center gap-1.5 text-xs font-medium">
+            <div className="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 rounded text-slate-700 dark:text-slate-300">
+              Patients: <strong className="text-slate-900 dark:text-white">{activePatientCount}</strong>
             </div>
-            <div className="bg-slate-900 border border-slate-800 px-2.5 py-1 rounded text-slate-300 flex items-center gap-1">
-              Alerts: <span className="text-rose-400 font-bold">{activeAlertsCount}</span>
-            </div>
+            {activeAlertsCount > 0 && (
+              <div className="bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/80 px-2.5 py-1 rounded text-rose-700 dark:text-rose-300 font-semibold">
+                Alerts: {activeAlertsCount}
+              </div>
+            )}
           </div>
 
+          {/* Demo Controls */}
+          <div className="flex items-center gap-1.5 pl-2 border-l border-slate-200 dark:border-slate-800">
+            <button
+              onClick={onOpenDemoScenarios}
+              className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium px-2.5 py-1 rounded flex items-center gap-1 transition-colors"
+            >
+              <Play className="w-3 h-3 text-slate-500 fill-slate-500 dark:text-slate-400 dark:fill-slate-400" />
+              <span>Scenarios</span>
+            </button>
 
+            <button
+              onClick={onRunSignatureDemo}
+              className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium px-2.5 py-1 rounded shadow-sm flex items-center gap-1 transition-colors"
+            >
+              <Activity className="w-3 h-3" />
+              <span className="hidden sm:inline">Run Demo</span>
+            </button>
+          </div>
 
-          {/* Demo Mode Menu Launcher */}
-          <button
-            onClick={onOpenDemoScenarios}
-            className="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs font-bold px-3 py-1.5 rounded flex items-center gap-1.5 transition-all shadow-md"
-          >
-            <Play className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-            <span>DEMO MODE</span>
-          </button>
-
-          {/* Hero "RUN SIGNATURE DEMO" Button */}
-          <button
-            onClick={onRunSignatureDemo}
-            className="bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white text-xs font-bold px-3 py-1.5 rounded shadow-lg shadow-rose-950 flex items-center gap-1.5 transition-all border border-rose-500"
-          >
-            <Activity className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">RUN SIGNATURE DEMO</span>
-            <span className="sm:hidden">SIGNATURE</span>
-          </button>
-
-          {/* Clinician Profile Avatar */}
-          <div className="flex items-center gap-2 pl-2 border-l border-slate-800 text-xs text-slate-300">
-            <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-rose-400 font-bold">
+          {/* Clinician Profile */}
+          <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800 text-xs">
+            <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 font-bold text-[10px]">
               NV
             </div>
-            <div className="hidden lg:block text-left leading-tight">
-              <p className="font-semibold text-slate-200 text-[11px]">Dr. Neha Verma</p>
-              <p className="text-[10px] text-slate-400">ED Attending</p>
+            <div className="hidden xl:block text-left leading-tight">
+              <p className="font-semibold text-slate-800 dark:text-slate-200 text-[11px]">Dr. Neha Verma</p>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400">ED Attending</p>
             </div>
           </div>
 

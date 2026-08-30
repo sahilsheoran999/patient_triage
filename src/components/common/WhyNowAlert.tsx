@@ -15,57 +15,55 @@ export const WhyNowAlert: React.FC<WhyNowAlertProps> = ({
   title,
   reason = 'Clinician review recommended.',
   reasonCode = 'NONE',
-  actionText = 'REASSESS NOW',
+  actionText = 'Reassess Patient',
   onActionClick,
-  compact = false
 }) => {
-  // Determine distinct visual badges, colors, and default titles based on reasonCode
-  let borderClass = 'border-rose-500';
-  let gradientClass = 'from-rose-950/80 via-slate-900 to-slate-900';
-  let badgeBg = 'bg-rose-500 text-slate-950';
-  let titleColor = 'text-rose-300';
-  let badgeText = 'WHY NOW?';
-  let defaultTitle = 'Safety Alert Triggered';
+  let borderClass = 'border-l-red-600 dark:border-l-red-500 border-red-200 dark:border-red-900/60';
+  let bgClass = 'bg-red-50/70 dark:bg-red-950/30';
+  let badgeClass = 'bg-red-100 dark:bg-red-950/70 text-red-800 dark:text-red-300 font-semibold border border-transparent dark:border-red-800';
+  let titleColor = 'text-red-900 dark:text-red-200';
+  let badgeText = 'Safety Alert';
+  let defaultTitle = 'Clinical Reassessment Required';
   let Icon = AlertCircle;
 
   if (reasonCode === 'SAFETY_RED_FLAG') {
-    borderClass = 'border-rose-500';
-    gradientClass = 'from-rose-950/90 via-slate-900 to-slate-900';
-    badgeBg = 'bg-rose-500 text-slate-950';
-    titleColor = 'text-rose-300';
-    badgeText = 'SAFETY FLOOR';
-    defaultTitle = 'Safety Floor Triggered';
+    borderClass = 'border-l-red-600 dark:border-l-red-500 border-red-200 dark:border-red-900/60';
+    bgClass = 'bg-red-50/80 dark:bg-red-950/40';
+    badgeClass = 'bg-red-100 dark:bg-red-950/70 text-red-800 dark:text-red-300 font-semibold border border-transparent dark:border-red-800';
+    titleColor = 'text-red-900 dark:text-red-200';
+    badgeText = 'Safety Floor';
+    defaultTitle = 'Deterministic Red Flag Active';
     Icon = ShieldAlert;
   } else if (reasonCode === 'MODEL_RULE_DISAGREEMENT') {
-    borderClass = 'border-amber-500';
-    gradientClass = 'from-amber-950/80 via-slate-900 to-slate-900';
-    badgeBg = 'bg-amber-500 text-slate-950';
-    titleColor = 'text-amber-300';
-    badgeText = 'AI ADVISORY';
-    defaultTitle = 'Advisory Model Disagreement';
+    borderClass = 'border-l-amber-500 dark:border-l-amber-500 border-amber-200 dark:border-amber-900/60';
+    bgClass = 'bg-amber-50/80 dark:bg-amber-950/40';
+    badgeClass = 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 font-semibold border border-transparent dark:border-amber-800';
+    titleColor = 'text-amber-900 dark:text-amber-200';
+    badgeText = 'Model Disagreement';
+    defaultTitle = 'Advisory Model Divergence';
     Icon = AlertTriangle;
   } else if (reasonCode === 'DETERIORATION') {
-    borderClass = 'border-rose-500';
-    gradientClass = 'from-rose-950/90 via-amber-950/40 to-slate-900';
-    badgeBg = 'bg-rose-500 text-slate-950';
-    titleColor = 'text-rose-300';
-    badgeText = 'DETERIORATION';
-    defaultTitle = 'Deterioration Detected';
+    borderClass = 'border-l-red-600 dark:border-l-red-500 border-red-200 dark:border-red-900/60';
+    bgClass = 'bg-red-50/90 dark:bg-red-950/50';
+    badgeClass = 'bg-red-100 dark:bg-red-950/70 text-red-800 dark:text-red-300 font-semibold border border-transparent dark:border-red-800';
+    titleColor = 'text-red-900 dark:text-red-200';
+    badgeText = 'Deterioration';
+    defaultTitle = 'Physiological Deterioration Detected';
     Icon = Zap;
   } else if (reasonCode === 'WAIT_TIME_EXCEEDED') {
-    borderClass = 'border-orange-500';
-    gradientClass = 'from-orange-950/80 via-slate-900 to-slate-900';
-    badgeBg = 'bg-orange-500 text-slate-950';
-    titleColor = 'text-orange-300';
-    badgeText = 'QUEUE TIMER';
+    borderClass = 'border-l-amber-500 dark:border-l-amber-500 border-amber-200 dark:border-amber-900/60';
+    bgClass = 'bg-amber-50/80 dark:bg-amber-950/40';
+    badgeClass = 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 font-semibold border border-transparent dark:border-amber-800';
+    titleColor = 'text-amber-900 dark:text-amber-200';
+    badgeText = 'Wait Timer';
     defaultTitle = 'Waiting-Time Threshold Exceeded';
     Icon = Clock;
   } else if (reasonCode === 'HIGH_UNCERTAINTY') {
-    borderClass = 'border-indigo-500';
-    gradientClass = 'from-indigo-950/80 via-slate-900 to-slate-900';
-    badgeBg = 'bg-indigo-500 text-slate-950';
-    titleColor = 'text-indigo-300';
-    badgeText = 'UNCERTAINTY';
+    borderClass = 'border-l-blue-600 dark:border-l-blue-500 border-blue-200 dark:border-blue-900/60';
+    bgClass = 'bg-blue-50/80 dark:bg-blue-950/40';
+    badgeClass = 'bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 font-semibold border border-transparent dark:border-blue-800';
+    titleColor = 'text-blue-900 dark:text-blue-200';
+    badgeText = 'Data Quality';
     defaultTitle = 'High Uncertainty Review';
     Icon = HelpCircle;
   }
@@ -73,20 +71,20 @@ export const WhyNowAlert: React.FC<WhyNowAlertProps> = ({
   const displayTitle = title || defaultTitle;
 
   return (
-    <div className={`bg-gradient-to-r ${gradientClass} border-l-4 ${borderClass} border-y border-r border-slate-800 p-2.5 rounded-r-lg shadow-lg`}>
+    <div className={`${bgClass} border-l-4 ${borderClass} border-y border-r p-3 rounded-r-md text-xs transition-colors`}>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="flex items-start gap-2.5">
-          <div className="bg-slate-900/80 p-1.5 rounded text-white mt-0.5 border border-slate-800">
-            <Icon className="w-4 h-4 text-white" />
+          <div className="p-1 bg-white dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 mt-0.5 shadow-2xs">
+            <Icon className="w-3.5 h-3.5 text-slate-700 dark:text-slate-300" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className={`${badgeBg} text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide`}>
+              <span className={`${badgeClass} text-[10px] px-1.5 py-0.2 rounded`}>
                 {badgeText}
               </span>
-              <span className={`text-xs font-semibold ${titleColor}`}>{displayTitle}</span>
+              <span className={`font-semibold ${titleColor}`}>{displayTitle}</span>
             </div>
-            <p className="text-xs text-slate-300 mt-1 font-medium leading-relaxed">
+            <p className="text-slate-700 dark:text-slate-300 mt-0.5 leading-relaxed font-normal">
               {reason}
             </p>
           </div>
@@ -95,10 +93,10 @@ export const WhyNowAlert: React.FC<WhyNowAlertProps> = ({
         {onActionClick && (
           <button
             onClick={onActionClick}
-            className="self-start sm:self-center px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded transition-all duration-150 flex items-center gap-1.5 shadow-md border border-slate-700 whitespace-nowrap"
+            className="self-start sm:self-center px-3 py-1 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium text-xs rounded border border-slate-300 dark:border-slate-700 transition-colors flex items-center gap-1 shrink-0 shadow-2xs"
           >
             <span>{actionText}</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-3 h-3 text-slate-500 dark:text-slate-400" />
           </button>
         )}
       </div>

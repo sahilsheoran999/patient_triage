@@ -1,6 +1,6 @@
 import React from 'react';
 import { SurgeState, Patient } from '../../types';
-import { Flame, AlertTriangle, Users, Clock, ShieldAlert, ArrowRight } from 'lucide-react';
+import { Flame } from 'lucide-react';
 
 interface SurgeIntelligencePanelProps {
   surgeState: SurgeState;
@@ -21,88 +21,86 @@ export const SurgeIntelligencePanel: React.FC<SurgeIntelligencePanelProps> = ({
     .slice(0, 5);
 
   return (
-    <div className="bg-slate-900 border border-rose-500/80 p-5 rounded-xl space-y-4 font-mono text-xs shadow-2xl text-slate-100">
-      
+    <div className="bg-white dark:bg-slate-900 border-2 border-red-200 dark:border-red-800/80 p-4 rounded-lg space-y-3 text-xs shadow-sm text-slate-900 dark:text-slate-100 transition-colors">
+
       {/* Title */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div className="flex items-center gap-2.5">
-          <Flame className="w-5 h-5 text-amber-300 animate-bounce" />
-          <h3 className="font-bold text-sm text-white uppercase tracking-wider">
-            SURGE INTELLIGENCE & QUEUE PRESSURE DASHBOARD
+      <div className="flex items-center justify-between border-b border-red-100 dark:border-red-800/60 pb-2">
+        <div className="flex items-center gap-2">
+          <Flame className="w-4 h-4 text-red-600 dark:text-red-400" />
+          <h3 className="font-bold text-sm text-red-950 dark:text-red-200 uppercase tracking-wide">
+            Surge Mode Active · Queue Pressure Dashboard
           </h3>
         </div>
-        <span className="text-[10px] bg-rose-500 text-slate-950 font-extrabold px-2.5 py-1 rounded uppercase">
-          SIMULATED 3.0× SURGE
+        <span className="text-[10px] bg-red-600 text-white font-bold px-2 py-0.5 rounded">
+          3.0× Surge Volume
         </span>
       </div>
 
-      <p className="text-[11px] text-slate-400 font-sans italic">
-        Illustrative simulation values calculated dynamically from baseline queue volume.
-      </p>
-
       {/* Surge Metrics Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 text-center">
-        <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
-          <span className="text-[9px] text-slate-500 uppercase block">Patient Volume</span>
-          <span className="text-lg font-bold text-amber-300">3.0×</span>
+      <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center">
+        <div className="bg-slate-50 dark:bg-slate-950 p-2 rounded border border-slate-200 dark:border-slate-800">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block">Volume Multiplier</span>
+          <span className="text-base font-bold text-slate-900 dark:text-white font-mono">3.0×</span>
         </div>
 
-        <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
-          <span className="text-[9px] text-slate-500 uppercase block">Queue Growth</span>
-          <span className="text-lg font-bold text-rose-400">+{surgeState.queueGrowth}</span>
+        <div className="bg-slate-50 dark:bg-slate-950 p-2 rounded border border-slate-200 dark:border-slate-800">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block">Queue Growth</span>
+          <span className="text-base font-bold text-red-700 dark:text-red-400 font-mono">+{surgeState.queueGrowth}</span>
         </div>
 
-        <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
-          <span className="text-[9px] text-slate-500 uppercase block">Critical Cases</span>
-          <span className="text-lg font-bold text-rose-400">{surgeState.criticalCasesCount}</span>
+        <div className="bg-slate-50 dark:bg-slate-950 p-2 rounded border border-slate-200 dark:border-slate-800">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block">Critical Cases</span>
+          <span className="text-base font-bold text-red-700 dark:text-red-400 font-mono">{surgeState.criticalCasesCount}</span>
         </div>
 
-        <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
-          <span className="text-[9px] text-slate-500 uppercase block">High Priority</span>
-          <span className="text-lg font-bold text-orange-400">{surgeState.highPriorityCount}</span>
+        <div className="bg-slate-50 dark:bg-slate-950 p-2 rounded border border-slate-200 dark:border-slate-800">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block">High Priority</span>
+          <span className="text-base font-bold text-amber-800 dark:text-amber-400 font-mono">{surgeState.highPriorityCount}</span>
         </div>
 
-        <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
-          <span className="text-[9px] text-slate-500 uppercase block">Reassessment Backlog</span>
-          <span className="text-lg font-bold text-amber-300">{surgeState.reassessmentBacklogCount}</span>
+        <div className="bg-slate-50 dark:bg-slate-950 p-2 rounded border border-slate-200 dark:border-slate-800">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block">Reassess Backlog</span>
+          <span className="text-base font-bold text-amber-800 dark:text-amber-400 font-mono">{surgeState.reassessmentBacklogCount}</span>
         </div>
 
-        <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
-          <span className="text-[9px] text-slate-500 uppercase block">Longest Wait</span>
-          <span className="text-lg font-bold text-white">{surgeState.longestWaitMinutes}m</span>
+        <div className="bg-slate-50 dark:bg-slate-950 p-2 rounded border border-slate-200 dark:border-slate-800">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block">Longest Wait</span>
+          <span className="text-base font-bold text-slate-900 dark:text-white font-mono">{surgeState.longestWaitMinutes}m</span>
         </div>
       </div>
 
       {/* Top 5 Safety Concerns List */}
-      <div className="space-y-2 pt-2 border-t border-slate-800">
-        <span className="text-xs font-bold text-rose-300 uppercase block">
-          Top 5 Pinned Safety Concerns (Action Required)
+      <div className="space-y-1.5 pt-1 border-t border-slate-100 dark:border-slate-800">
+        <span className="text-[11px] font-bold text-red-900 dark:text-red-300 uppercase block">
+          Priority Pinned Patients (Attention Required)
         </span>
 
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           {topConcernPatients.map((pt) => (
             <div
               key={pt.id}
               onClick={() => onSelectPatient(pt)}
-              className="bg-slate-950 hover:bg-slate-800 p-2.5 rounded border border-slate-800 flex items-center justify-between cursor-pointer transition-colors"
+              className="bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800/80 p-2 rounded border border-slate-200 dark:border-slate-800 flex items-center justify-between cursor-pointer transition-colors"
             >
-              <div className="flex items-center gap-3">
-                <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${
-                  pt.priority === 'CRITICAL' ? 'bg-rose-500 text-slate-950' : 'bg-orange-500 text-slate-950'
+              <div className="flex items-center gap-2.5">
+                <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
+                  pt.priority === 'CRITICAL'
+                    ? 'bg-red-100 dark:bg-red-950/70 text-red-800 dark:text-red-300 border border-transparent dark:border-red-800'
+                    : 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-transparent dark:border-amber-800'
                 }`}>
                   {pt.priority}
                 </span>
 
                 <div>
-                  <span className="font-bold text-white text-xs">{pt.id} — {pt.name}</span>
-                  <span className="text-slate-400 text-[11px] ml-2">({pt.chiefComplaint})</span>
+                  <span className="font-semibold text-slate-900 dark:text-white text-xs">{pt.id} — {pt.name}</span>
+                  <span className="text-slate-500 dark:text-slate-400 text-[11px] ml-1.5">({pt.chiefComplaint})</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <span className="text-[11px] text-amber-400">Risk: {pt.riskScore}/100</span>
-                <span className="text-rose-400 font-bold text-xs flex items-center gap-1">
-                  View →
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-slate-600 dark:text-slate-400 font-mono">Risk: {pt.riskScore}/100</span>
+                <span className="text-slate-800 dark:text-slate-200 font-medium text-xs">
+                  Review →
                 </span>
               </div>
             </div>

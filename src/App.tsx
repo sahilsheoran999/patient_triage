@@ -26,6 +26,24 @@ import { ArchitectureModal } from './components/modals/ArchitectureModal';
 import { DemoScenariosModal } from './components/modals/DemoScenariosModal';
 
 export const App: React.FC = () => {
+  // Theme State (Light / Dark)
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    return (localStorage.getItem('patient_triage_theme') as 'light' | 'dark') || 'light';
+  });
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('patient_triage_theme', theme);
+  }, [theme]);
+
+  const handleToggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
+
   // 1. Primary State
   const [patients, setPatients] = useState<Patient[]>(() => {
     return INITIAL_SYNTHETIC_PATIENTS.map(p => {
@@ -36,7 +54,7 @@ export const App: React.FC = () => {
 
   const [currentHospital, setCurrentHospital] = useState<HospitalProfile>(HOSPITAL_PROFILES.urban_trauma);
   const [activeTab, setActiveTab] = useState<ActiveTab>('command_center');
-  
+
   // Surge State
   const [surgeState, setSurgeState] = useState<SurgeState>({
     isActive: false,
@@ -118,7 +136,7 @@ export const App: React.FC = () => {
         patientName: 'System Queue',
         user: 'Dr. Neha Verma (MD)',
         eventType: nextActive ? 'SURGE_MODE_ACTIVATED' : 'SURGE_MODE_DEACTIVATED',
-        details: nextActive 
+        details: nextActive
           ? 'SURGE MODE 3.0x ACTIVATED: Simulated 372 waiting patients & priority pinned queue'
           : 'SURGE MODE DEACTIVATED: Restored normal volume monitoring',
         previousState: nextActive ? 'NORMAL' : 'SURGE',
@@ -132,9 +150,9 @@ export const App: React.FC = () => {
 
   // Clinician Override Confirmation
   const handleConfirmOverride = (
-    patientId: string, 
-    newPriority: TriageLevelCode, 
-    reasonCategory: string, 
+    patientId: string,
+    newPriority: TriageLevelCode,
+    reasonCategory: string,
     customNote: string
   ) => {
     setPatients(prev => prev.map(p => {
@@ -291,7 +309,7 @@ export const App: React.FC = () => {
   const handleAddPatient = (newPatient: Patient) => {
     const evalRes = evaluatePatientTriage(newPatient);
     const triaged = evalRes.updatedPatient;
-    
+
     setPatients(prev => [triaged, ...prev]);
 
     const auditEntry: AuditLogEntry = {
@@ -377,8 +395,8 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-rose-500 selection:text-white">
-      
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-rose-100 selection:text-rose-900">
+
       {/* Persistent Top Navigation Bar */}
       <TopBar
         surgeState={surgeState}
@@ -389,11 +407,13 @@ export const App: React.FC = () => {
         onRunSignatureDemo={handleRunSignatureDemo}
         onOpenArchitectureModal={() => setIsArchitectureModalOpen(true)}
         currentHospitalName={currentHospital.name}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
       {/* Main Workspace Layout */}
       <div className="flex-1 flex overflow-hidden">
-        
+
         {/* Left Clinical Sidebar */}
         <Sidebar
           activeTab={activeTab}
@@ -409,8 +429,8 @@ export const App: React.FC = () => {
         />
 
         {/* Primary Content View Area */}
-        <main className="flex-1 overflow-y-auto bg-slate-950">
-          
+        <main className="flex-1 overflow-y-auto bg-slate-100 dark:bg-slate-950">
+
           {/* Surge Intelligence Panel when Surge Mode Active */}
           {surgeState.isActive && (
             <div className="p-4 sm:p-6 pb-0">
@@ -457,11 +477,12 @@ export const App: React.FC = () => {
                   onReassessPatient={handleReassessPatient}
                 />
               ) : (
-                <div className="text-center py-16 space-y-3 font-mono">
-                  <p className="text-slate-400 text-sm">No patient selected for detail view.</p>
+                <div className="text-center py-16 space-y-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm max-w-lg mx-auto mt-12">
+                  <p className="text-slate-600 dark:text-slate-300 text-sm font-medium">No patient selected for detail view.</p>
+                  <p className="text-slate-400 dark:text-slate-500 text-xs">Select a patient from the Command Center or Waiting-Room Radar.</p>
                   <button
                     onClick={() => setSelectedDetailPatient(patients[0])}
-                    className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded"
+                    className="px-4 py-2 bg-slate-800 dark:bg-slate-700 hover:bg-slate-700 dark:hover:bg-slate-600 text-white font-medium text-xs rounded transition-colors"
                   >
                     View Sample Patient (P-101)
                   </button>

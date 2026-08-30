@@ -1,13 +1,8 @@
 import React, { useState } from 'react';
 import { Patient, VitalReading } from '../../types';
 import { AgeCategory } from '../../config/ageGroupConfig';
-import { 
-  UserPlus, 
-  Activity, 
-  ShieldAlert, 
-  CheckCircle, 
-  AlertTriangle, 
-  HelpCircle, 
+import {
+  UserPlus,
   ArrowRight,
   Info
 } from 'lucide-react';
@@ -17,17 +12,17 @@ interface PatientIntakeViewProps {
 }
 
 export const PatientIntakeView: React.FC<PatientIntakeViewProps> = ({ onAddPatient }) => {
-  const [patientId, setPatientId] = useState(`NEW-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`);
+  const [patientId, setPatientId] = useState<string>('');
   const [name, setName] = useState('');
   const [age, setAge] = useState<number>(45);
   const [gender, setGender] = useState<'M' | 'F' | 'Other'>('M');
   const [ageGroup, setAgeGroup] = useState<AgeCategory>('ADULT');
-  
+
   const [chiefComplaint, setChiefComplaint] = useState('');
   const [symptomSeverity, setSymptomSeverity] = useState<number>(6);
   const [durationHours, setDurationHours] = useState<number>(4);
   const [associatedSymptomsText, setAssociatedSymptomsText] = useState('');
-  
+
   // Vitals state — BP intentionally starts blank to enforce UNKNOWN ≠ NORMAL
   const [spo2, setSpo2] = useState<string>('96');
   const [heartRate, setHeartRate] = useState<string>('88');
@@ -40,7 +35,7 @@ export const PatientIntakeView: React.FC<PatientIntakeViewProps> = ({ onAddPatie
   const [hasNoHistory, setHasNoHistory] = useState<boolean>(false);
   const [medicalHistoryText, setMedicalHistoryText] = useState('');
   const [allergiesText, setAllergiesText] = useState('');
-  
+
   // Observed Cues checkboxes
   const [selectedCues, setSelectedCues] = useState<string[]>([]);
 
@@ -65,8 +60,9 @@ export const PatientIntakeView: React.FC<PatientIntakeViewProps> = ({ onAddPatie
 
   // Live Data Completeness calculation
   let completedCount = 0;
-  const totalCount = 9;
+  const totalCount = 10;
 
+  if (patientId.trim()) completedCount++;
   if (spo2) completedCount++;
   if (heartRate) completedCount++;
   if (systolicBp) completedCount++;
@@ -81,6 +77,18 @@ export const PatientIntakeView: React.FC<PatientIntakeViewProps> = ({ onAddPatie
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const formattedId = patientId.trim().toUpperCase();
+    if (!formattedId) {
+      alert('Please enter a Patient ID (format: P-XXX, e.g. P-147).');
+      return;
+    }
+
+    if (!/^P-\d+$/i.test(formattedId)) {
+      alert('Invalid Patient ID format. Please use the P-XXX convention (e.g. P-147).');
+      return;
+    }
+
     if (!chiefComplaint.trim()) {
       alert('Please enter a chief complaint.');
       return;
@@ -98,8 +106,8 @@ export const PatientIntakeView: React.FC<PatientIntakeViewProps> = ({ onAddPatie
     };
 
     const newPatient: Patient = {
-      id: patientId,
-      name: name.trim() || `Patient ${patientId}`,
+      id: formattedId,
+      name: name.trim() || `Patient ${formattedId}`,
       gender,
       age: Number(age),
       ageGroup,
@@ -137,34 +145,34 @@ export const PatientIntakeView: React.FC<PatientIntakeViewProps> = ({ onAddPatie
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 p-4 sm:p-6 text-slate-100">
-      
-      {/* View Title & Principle Header */}
-      <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="max-w-4xl mx-auto space-y-4 p-4 sm:p-6 text-slate-900 dark:text-slate-100 transition-colors">
+
+      {/* View Header with Live Completeness Indicator */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-lg shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <UserPlus className="w-6 h-6 text-rose-500" />
-            <h1 className="text-xl font-bold font-mono text-white">Patient Intake & Quality Layer</h1>
+            <UserPlus className="w-5 h-5 text-slate-800 dark:text-slate-200" />
+            <h1 className="text-base font-bold text-slate-900 dark:text-white">Patient Intake</h1>
           </div>
-          <p className="text-xs text-slate-300 mt-1">
-            Fast clinician intake with live data completeness assessment & explicit <strong className="text-amber-300 font-mono">UNKNOWN ≠ NORMAL</strong> rule enforcement.
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Structured clinical registration with real-time data completeness evaluation.
           </p>
         </div>
 
-        {/* Live Data Completeness Gauge */}
-        <div className="bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-lg text-center font-mono">
-          <span className="text-[10px] text-slate-400 uppercase block font-sans">Live Data Completeness</span>
+        {/* Live Data Completeness Indicator */}
+        <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded text-center">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold block">Data Completeness</span>
           <div className="flex items-center gap-2 mt-0.5">
-            <div className="w-24 bg-slate-800 h-2.5 rounded-full overflow-hidden">
-              <div 
+            <div className="w-24 bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+              <div
                 className={`h-full transition-all duration-300 ${
-                  liveCompleteness >= 80 ? 'bg-emerald-500' : liveCompleteness >= 60 ? 'bg-amber-500' : 'bg-rose-500'
+                  liveCompleteness >= 80 ? 'bg-emerald-600' : liveCompleteness >= 60 ? 'bg-amber-500' : 'bg-red-500'
                 }`}
                 style={{ width: `${liveCompleteness}%` }}
               ></div>
             </div>
-            <span className={`text-base font-bold ${
-              liveCompleteness >= 80 ? 'text-emerald-400' : liveCompleteness >= 60 ? 'text-amber-400' : 'text-rose-400'
+            <span className={`text-xs font-bold font-mono ${
+              liveCompleteness >= 80 ? 'text-emerald-700 dark:text-emerald-400' : liveCompleteness >= 60 ? 'text-amber-800 dark:text-amber-400' : 'text-red-700 dark:text-red-400'
             }`}>
               {liveCompleteness}%
             </span>
@@ -173,49 +181,51 @@ export const PatientIntakeView: React.FC<PatientIntakeViewProps> = ({ onAddPatie
       </div>
 
       {/* Principle Callout Box */}
-      <div className="bg-amber-950/40 border border-amber-500/40 p-3 rounded-lg flex items-start gap-2.5 text-xs text-amber-200">
-        <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+      <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 p-3 rounded-lg flex items-start gap-2.5 text-xs text-amber-900 dark:text-amber-200">
+        <Info className="w-4 h-4 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
         <div>
-          <strong className="font-bold text-amber-300 uppercase font-mono">DESIGN PRINCIPLE: UNKNOWN ≠ NORMAL</strong>
-          <p className="text-[11px] text-slate-300 mt-0.5">
-            If a vital or history field is left blank, the triage engine will NOT substitute a normal value. Instead, missing fields automatically decrease data completeness, increase uncertainty, and apply safety bias escalation.
+          <strong className="font-semibold text-amber-950 dark:text-amber-100">Safety Standard: UNKNOWN ≠ NORMAL</strong>
+          <p className="text-amber-800 dark:text-amber-300 text-[11px] mt-0.5">
+            Missing vital signs or absent history will not be assumed normal. Unrecorded inputs increase model uncertainty and activate safety floor constraints.
           </p>
         </div>
       </div>
 
       {/* Intake Form */}
-      <form onSubmit={handleSubmit} className="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-xl space-y-6">
-        
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-lg shadow-sm space-y-5 text-xs">
+
         {/* Section 1: Demographics */}
-        <div className="space-y-3 border-b border-slate-800 pb-4">
-          <span className="text-xs font-mono font-bold uppercase text-slate-400 tracking-wider">
+        <div className="space-y-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+          <span className="font-bold text-slate-700 dark:text-slate-300 uppercase text-[10px] tracking-wide block">
             1. Demographics & Identification
           </span>
 
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Patient ID</label>
+              <label className="text-slate-500 dark:text-slate-400 block mb-1">Patient ID *</label>
               <input
                 type="text"
+                placeholder="P-XXX (e.g. P-147)"
                 value={patientId}
                 onChange={(e) => setPatientId(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-rose-500"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-2.5 py-1.5 font-mono text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-slate-400 dark:focus:border-slate-700 focus:outline-none"
+                required
               />
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Patient Name</label>
+              <label className="text-slate-500 dark:text-slate-400 block mb-1">Patient Name</label>
               <input
                 type="text"
                 placeholder="Full Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-rose-500"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-2.5 py-1.5 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-slate-400 dark:focus:border-slate-700 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Age</label>
+              <label className="text-slate-500 dark:text-slate-400 block mb-1">Age</label>
               <input
                 type="number"
                 value={age}
@@ -226,47 +236,47 @@ export const PatientIntakeView: React.FC<PatientIntakeViewProps> = ({ onAddPatie
                   else if (val >= 65) setAgeGroup('GERIATRIC');
                   else setAgeGroup('ADULT');
                 }}
-                className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-rose-500"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-2.5 py-1.5 font-mono text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:border-slate-400 dark:focus:border-slate-700 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Age Category</label>
+              <label className="text-slate-500 dark:text-slate-400 block mb-1">Age Category</label>
               <select
                 value={ageGroup}
                 onChange={(e) => setAgeGroup(e.target.value as AgeCategory)}
-                className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs font-mono text-amber-300 font-bold focus:outline-none"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-2.5 py-1.5 text-slate-900 dark:text-slate-100 font-medium focus:bg-white dark:focus:bg-slate-900 focus:border-slate-400 dark:focus:border-slate-700 focus:outline-none"
               >
-                <option value="PEDIATRIC">PEDIATRIC (&lt;18y)</option>
-                <option value="ADULT">ADULT (18-64y)</option>
-                <option value="GERIATRIC">GERIATRIC (65y+)</option>
+                <option value="PEDIATRIC">Pediatric (&lt;18y)</option>
+                <option value="ADULT">Adult (18-64y)</option>
+                <option value="GERIATRIC">Geriatric (65y+)</option>
               </select>
             </div>
           </div>
         </div>
 
         {/* Section 2: Symptoms & Chief Complaint */}
-        <div className="space-y-3 border-b border-slate-800 pb-4">
-          <span className="text-xs font-mono font-bold uppercase text-slate-400 tracking-wider">
-            2. Symptoms & Chief Complaint
+        <div className="space-y-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+          <span className="font-bold text-slate-700 dark:text-slate-300 uppercase text-[10px] tracking-wide block">
+            2. Chief Complaint & Symptoms
           </span>
 
           <div className="space-y-3">
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Chief Complaint *</label>
+              <label className="text-slate-500 dark:text-slate-400 block mb-1">Chief Complaint *</label>
               <input
                 type="text"
-                placeholder="e.g. Acute shortness of breath, chest tightness, abdominal pain..."
+                placeholder="e.g. Acute shortness of breath, substernal chest tightness..."
                 value={chiefComplaint}
                 onChange={(e) => setChiefComplaint(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-rose-500"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-3 py-2 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-slate-400 dark:focus:border-slate-700 focus:outline-none"
                 required
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Symptom Severity (1 - 10)</label>
+                <label className="text-slate-500 dark:text-slate-400 block mb-1">Symptom Severity (1 - 10)</label>
                 <div className="flex items-center gap-3">
                   <input
                     type="range"
@@ -274,192 +284,194 @@ export const PatientIntakeView: React.FC<PatientIntakeViewProps> = ({ onAddPatie
                     max="10"
                     value={symptomSeverity}
                     onChange={(e) => setSymptomSeverity(parseInt(e.target.value))}
-                    className="w-full accent-rose-500"
+                    className="w-full accent-slate-800 dark:accent-slate-400"
                   />
-                  <span className="font-mono text-sm font-bold text-rose-400 w-6">{symptomSeverity}</span>
+                  <span className="font-mono text-xs font-bold text-slate-900 dark:text-white w-6">{symptomSeverity}</span>
                 </div>
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Duration (Hours)</label>
+                <label className="text-slate-500 dark:text-slate-400 block mb-1">Duration (Hours)</label>
                 <input
                   type="number"
                   step="0.5"
                   value={durationHours}
                   onChange={(e) => setDurationHours(parseFloat(e.target.value) || 0)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs font-mono text-white focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-2.5 py-1.5 font-mono text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:border-slate-400 dark:focus:border-slate-700 focus:outline-none"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Associated Symptoms (Comma separated)</label>
+              <label className="text-slate-500 dark:text-slate-400 block mb-1">Associated Symptoms (Comma separated)</label>
               <input
                 type="text"
-                placeholder="e.g. Fever, sweating, nausea, dizziness..."
+                placeholder="e.g. Diaphoresis, nausea, dizziness..."
                 value={associatedSymptomsText}
                 onChange={(e) => setAssociatedSymptomsText(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-2.5 py-1.5 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-slate-400 dark:focus:border-slate-700 focus:outline-none"
               />
             </div>
           </div>
         </div>
 
         {/* Section 3: Vitals Measurements */}
-        <div className="space-y-3 border-b border-slate-800 pb-4">
+        <div className="space-y-3 border-b border-slate-100 dark:border-slate-800 pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <span className="text-xs font-mono font-bold uppercase text-slate-400 tracking-wider">
+            <span className="font-bold text-slate-700 dark:text-slate-300 uppercase text-[10px] tracking-wide block">
               3. Vital Signs Measurements
             </span>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] text-amber-400 italic">Leave blank if unavailable to test UNKNOWN ≠ NORMAL</span>
+              <span className="text-[11px] text-slate-400 italic">Leave unrecorded to test UNKNOWN ≠ NORMAL</span>
               <button
                 type="button"
                 onClick={() => { setSystolicBp('120'); setDiastolicBp('80'); }}
-                className="text-[10px] font-mono bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded border border-slate-700 transition-colors whitespace-nowrap"
+                className="text-[10px] bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 transition-colors"
               >
-                + Fill Demo BP (120/80)
+                + Fill Sample BP (120/80)
               </button>
             </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
             <div>
-              <label className="text-xs text-slate-400 block mb-1">SpO₂ (%)</label>
+              <label className="text-slate-500 dark:text-slate-400 block mb-1">SpO₂ (%)</label>
               <input
                 type="number"
                 placeholder="e.g. 96"
                 value={spo2}
                 onChange={(e) => setSpo2(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs font-mono text-white placeholder-slate-700 focus:outline-none"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-2.5 py-1.5 font-mono text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-slate-400 dark:focus:border-slate-700 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Heart Rate (bpm)</label>
+              <label className="text-slate-500 dark:text-slate-400 block mb-1">Heart Rate (bpm)</label>
               <input
                 type="number"
                 placeholder="e.g. 88"
                 value={heartRate}
                 onChange={(e) => setHeartRate(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs font-mono text-white placeholder-slate-700 focus:outline-none"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-2.5 py-1.5 font-mono text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-slate-400 dark:focus:border-slate-700 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Systolic BP (mmHg)</label>
+              <label className="text-slate-500 dark:text-slate-400 block mb-1">Systolic BP</label>
               <input
                 type="number"
-                placeholder="UNAVAILABLE"
+                placeholder="UNRECORDED"
                 value={systolicBp}
                 onChange={(e) => setSystolicBp(e.target.value)}
-                className={`w-full border rounded px-3 py-1.5 text-xs font-mono focus:outline-none ${
-                  !systolicBp ? 'bg-amber-950/40 border-amber-500/50 text-amber-300 placeholder-amber-500/60' : 'bg-slate-950 border-slate-800 text-white'
+                className={`w-full border rounded px-2.5 py-1.5 font-mono text-xs focus:outline-none ${
+                  !systolicBp
+                    ? 'bg-amber-50/60 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 placeholder-amber-500'
+                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100'
                 }`}
               />
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Diastolic BP (mmHg)</label>
+              <label className="text-slate-500 dark:text-slate-400 block mb-1">Diastolic BP</label>
               <input
                 type="number"
-                placeholder="UNAVAILABLE"
+                placeholder="UNRECORDED"
                 value={diastolicBp}
                 onChange={(e) => setDiastolicBp(e.target.value)}
-                className={`w-full border rounded px-3 py-1.5 text-xs font-mono focus:outline-none ${
-                  !diastolicBp ? 'bg-amber-950/40 border-amber-500/50 text-amber-300 placeholder-amber-500/60' : 'bg-slate-950 border-slate-800 text-white'
+                className={`w-full border rounded px-2.5 py-1.5 font-mono text-xs focus:outline-none ${
+                  !diastolicBp
+                    ? 'bg-amber-50/60 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 placeholder-amber-500'
+                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100'
                 }`}
               />
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Resp Rate (/min)</label>
+              <label className="text-slate-500 dark:text-slate-400 block mb-1">Resp Rate (/min)</label>
               <input
                 type="number"
                 placeholder="e.g. 18"
                 value={respiratoryRate}
                 onChange={(e) => setRespiratoryRate(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs font-mono text-white placeholder-slate-700 focus:outline-none"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-2.5 py-1.5 font-mono text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-slate-400 dark:focus:border-slate-700 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Temp (°C)</label>
+              <label className="text-slate-500 dark:text-slate-400 block mb-1">Temp (°C)</label>
               <input
                 type="number"
                 step="0.1"
                 placeholder="e.g. 37.0"
                 value={temperature}
                 onChange={(e) => setTemperature(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs font-mono text-white placeholder-slate-700 focus:outline-none"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-2.5 py-1.5 font-mono text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-slate-400 dark:focus:border-slate-700 focus:outline-none"
               />
             </div>
           </div>
         </div>
 
-        {/* Section 4: Medical History & Zero-History Toggle */}
-        <div className="space-y-3 border-b border-slate-800 pb-4">
+        {/* Section 4: Medical History */}
+        <div className="space-y-3 border-b border-slate-100 dark:border-slate-800 pb-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-mono font-bold uppercase text-slate-400 tracking-wider">
+            <span className="font-bold text-slate-700 dark:text-slate-300 uppercase text-[10px] tracking-wide block">
               4. Medical History & Past Records
             </span>
 
-            {/* Zero History Toggle */}
-            <label className="flex items-center gap-2 cursor-pointer bg-slate-950 px-2.5 py-1 rounded border border-slate-800 text-xs text-amber-300">
+            <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-950 px-2.5 py-1 rounded border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300">
               <input
                 type="checkbox"
                 checked={hasNoHistory}
                 onChange={(e) => setHasNoHistory(e.target.checked)}
-                className="accent-amber-500"
+                className="accent-slate-800 dark:accent-slate-400"
               />
-              <span className="font-mono font-semibold">Zero History Record (Unrepresented)</span>
+              <span className="font-medium">Zero History Record (Unrepresented)</span>
             </label>
           </div>
 
           {!hasNoHistory ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Medical Conditions (Comma separated)</label>
+                <label className="text-slate-500 dark:text-slate-400 block mb-1">Medical Conditions (Comma separated)</label>
                 <input
                   type="text"
                   placeholder="e.g. Hypertension, COPD, Diabetes..."
                   value={medicalHistoryText}
                   onChange={(e) => setMedicalHistoryText(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-2.5 py-1.5 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-slate-400 dark:focus:border-slate-700 focus:outline-none"
                 />
               </div>
 
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="text-xs text-slate-400 block">Known Allergies</label>
+                  <label className="text-slate-500 dark:text-slate-400 block">Known Allergies</label>
                   <button
                     type="button"
                     onClick={() => setAllergiesText('NKDA')}
-                    className="text-[10px] text-amber-400 hover:text-amber-300 font-mono focus:outline-none"
-                    title="Mark as No Known Drug Allergies"
+                    className="text-[10px] text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
                   >
-                    + Set NKDA
+                    + Mark NKDA
                   </button>
                 </div>
                 <input
                   type="text"
-                  placeholder="e.g. Penicillin, Peanuts (or type 'None' / 'NKDA')"
+                  placeholder="e.g. Penicillin, Sulfa (or 'NKDA')"
                   value={allergiesText}
                   onChange={(e) => setAllergiesText(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded px-2.5 py-1.5 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:border-slate-400 dark:focus:border-slate-700 focus:outline-none"
                 />
               </div>
             </div>
           ) : (
-            <div className="bg-amber-950/40 border border-amber-500/50 p-2.5 rounded text-xs text-amber-300 font-mono">
-              ⚠ ZERO HISTORY CONFIRMED — Medical background unavailable. Engine will assign zero-history uncertainty penalty.
+            <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 p-2.5 rounded">
+              ⚠ Zero History Confirmed — Engine will assign uncertainty penalty.
             </div>
           )}
         </div>
 
-        {/* Section 5: Observed Clinical Cues */}
+        {/* Section 5: Observed Physical Cues */}
         <div className="space-y-3">
-          <span className="text-xs font-mono font-bold uppercase text-slate-400 tracking-wider">
+          <span className="font-bold text-slate-700 dark:text-slate-300 uppercase text-[10px] tracking-wide block">
             5. Clinician Observed Physical Cues
           </span>
 
@@ -471,10 +483,10 @@ export const PatientIntakeView: React.FC<PatientIntakeViewProps> = ({ onAddPatie
                   type="button"
                   key={cue}
                   onClick={() => handleCueToggle(cue)}
-                  className={`p-2 rounded text-xs text-left border font-medium transition-all ${
+                  className={`p-2 rounded text-xs text-left border transition-colors ${
                     isChecked
-                      ? 'bg-rose-950/80 border-rose-500 text-rose-200'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                      ? 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-800 text-red-800 dark:text-red-300 font-semibold'
+                      : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
                 >
                   {isChecked ? '✓ ' : '+ '} {cue}
@@ -485,13 +497,13 @@ export const PatientIntakeView: React.FC<PatientIntakeViewProps> = ({ onAddPatie
         </div>
 
         {/* Submit Button */}
-        <div className="pt-3 border-t border-slate-800 flex justify-end">
+        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
           <button
             type="submit"
-            className="px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-lg transition-all shadow-lg shadow-rose-950 flex items-center gap-2"
+            className="px-5 py-2 bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-white text-white dark:text-slate-950 font-medium text-xs rounded transition-colors shadow-xs flex items-center gap-1.5"
           >
             <span>Register & Triage Patient</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
